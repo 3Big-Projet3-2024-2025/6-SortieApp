@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: SortieAppBackend
+  datasource:
+    url: jdbc:mariadb://localhost:3366/SortieApp
+    username: root
+    password: rootroot
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
