@@ -1,6 +1,6 @@
 package org.helha.be.sortieappbackend;
 
-import org.helha.be.sortieappbackend.models.Adresse;
+//import org.helha.be.sortieappbackend.models.Adresse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
