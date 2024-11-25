@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface IUserService {
     public List<User> getUsers();
-    public User addUser(User utilisateur);
-    public User updateUser(User utilisateur);
+    public User addUser(User user);
+    public User updateUser(User user);
     public void deleteUser(int id_user);
 }
