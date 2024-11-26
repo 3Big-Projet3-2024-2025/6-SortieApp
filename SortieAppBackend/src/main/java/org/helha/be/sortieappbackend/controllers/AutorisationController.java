@@ -33,19 +33,19 @@ public class AutorisationController {
         return autorisations;
     }
 
-    @GetMapping("/{userId}")
-    public List<Autorisation> getAutorisationByUserId(@PathVariable int userID){
+    @GetMapping("/user/{userId}")
+    public List<Autorisation> getAutorisationByUserId(@PathVariable int userId){
         long start = System.currentTimeMillis();
-        List autorisations = autorisationService.getAutorisationsByUserID(userID);
+        List autorisations = autorisationService.getAutorisationsByUserID(userId);
         long end = System.currentTimeMillis();
         System.out.println("Autorisations took " + (end - start) + "ms");
         return autorisations;
     }
 
-    @GetMapping("/{userId}/paged")
-    public Page<Autorisation> getAutorisationByUserId(@PathVariable int userID, Pageable page){
+    @GetMapping("/user/{userId}/paged")
+    public Page<Autorisation> getAutorisationByUserId(@PathVariable int userId, Pageable page){
         long start = System.currentTimeMillis();
-        Page autorisations = autorisationService.getAutorisationsByUserID(userID,page);
+        Page autorisations = autorisationService.getAutorisationsByUserID(userId,page);
         long end = System.currentTimeMillis();
         System.out.println("Autorisations took " + (end - start) + "ms");
         return autorisations;
