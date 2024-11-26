@@ -32,6 +32,25 @@ public class AutorisationController {
         System.out.println("Autorisations took " + (end - start) + "ms");
         return autorisations;
     }
+
+    @GetMapping("/{userId}")
+    public List<Autorisation> getAutorisationByUserId(@PathVariable int userID){
+        long start = System.currentTimeMillis();
+        List autorisations = autorisationService.getAutorisationsByUserID(userID);
+        long end = System.currentTimeMillis();
+        System.out.println("Autorisations took " + (end - start) + "ms");
+        return autorisations;
+    }
+
+    @GetMapping("/{userId}/paged")
+    public Page<Autorisation> getAutorisationByUserId(@PathVariable int userID, Pageable page){
+        long start = System.currentTimeMillis();
+        Page autorisations = autorisationService.getAutorisationsByUserID(userID,page);
+        long end = System.currentTimeMillis();
+        System.out.println("Autorisations took " + (end - start) + "ms");
+        return autorisations;
+    }
+
     @PostMapping
     public Autorisation addAutorisation(@RequestBody final Autorisation autorisation){ return autorisationService.addAutorisation(autorisation); }
 

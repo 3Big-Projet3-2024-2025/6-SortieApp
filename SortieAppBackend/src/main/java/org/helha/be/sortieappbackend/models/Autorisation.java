@@ -1,9 +1,6 @@
 package org.helha.be.sortieappbackend.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,6 +19,8 @@ public class Autorisation {
     private String heure_debut;
     private String heure_fin;
     private String jours;
-    //private long user_id;
+    @ManyToOne
+    @JoinColumn(name = "id_user")
+    private User user;
 
 }

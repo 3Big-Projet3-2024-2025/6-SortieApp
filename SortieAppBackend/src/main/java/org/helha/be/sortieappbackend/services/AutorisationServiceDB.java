@@ -17,7 +17,14 @@ public class AutorisationServiceDB implements IAutorisationService {
     @Autowired
     private AutorisationRepository autorisationRepository;
 
+    public Page<Autorisation> getAutorisationsByUserID(int userId,Pageable page) {
+        return autorisationRepository.findByUser_id(userId,page);
+    }
 
+    @Override
+    public List<Autorisation> getAutorisationsByUserID(int userId) {
+        return autorisationRepository.findByUser_id(userId);
+    }
 
     public Page<Autorisation> getAutorisations(Pageable page) {
         return autorisationRepository.findAll((org.springframework.data.domain.Pageable) page);
@@ -27,8 +34,6 @@ public class AutorisationServiceDB implements IAutorisationService {
     public List<Autorisation> getAutorisations() {
         return autorisationRepository.findAll();
     }
-
-    //public List<Autorisation> getAutorisationByUser_Id(Long user_Id) {return autorisationRepository.findByUser_id(user_Id);}
 
 
     public Autorisation addAutorisation(Autorisation autorisation) {
