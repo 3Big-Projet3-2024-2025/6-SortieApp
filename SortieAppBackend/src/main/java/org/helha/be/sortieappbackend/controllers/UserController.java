@@ -24,9 +24,9 @@ public class UserController {
         return serviceDB.addUser(user);
     }
 
-    @PutMapping()
-    public User updateUser(@RequestBody User user) {
-        return serviceDB.updateUser(user);
+    @PutMapping(path="/{id_user}")
+    public User updateUser(@RequestBody User user, @PathVariable int id_user) {
+        return serviceDB.updateUser(user, id_user);
     }
 
     @DeleteMapping(path="/{id_user}")

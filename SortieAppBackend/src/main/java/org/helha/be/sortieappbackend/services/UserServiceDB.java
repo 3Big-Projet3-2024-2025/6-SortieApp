@@ -23,7 +23,18 @@ public class UserServiceDB implements IUserService {
         return repository.save(user);
     }
 
-    public User updateUser(User user) { return repository.save(user); }
+    public User updateUser(User newUser, int id_user) {
+        return repository.findById(id_user)
+                .map(user -> {
+                    user.setName(newUser.getName());
+                    user.setLastname(newUser.getLastname());
+                    user.setEmail(newUser.getEmail());
+                    user.setAddress(newUser.getAddress());
+                    user.setRoles(newUser.getRoles());
+                    return repository.save(user);
+                })
+                .orElseGet(() -> repository.save(newUser));
+    }
 
     public void deleteUser(int id_user) {
         repository.deleteById(id_user);

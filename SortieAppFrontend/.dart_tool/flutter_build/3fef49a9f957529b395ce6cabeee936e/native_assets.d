@@ -1,1 +1,0 @@
- C:\\Users\\hsyno\\IdeaProjects\\6-SortieApp\\SortieAppFrontend\\.dart_tool\\flutter_build\\3fef49a9f957529b395ce6cabeee936e\\native_assets.yaml: 
