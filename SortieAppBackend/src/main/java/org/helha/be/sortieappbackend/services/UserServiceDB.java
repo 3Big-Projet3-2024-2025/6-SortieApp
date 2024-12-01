@@ -26,11 +26,11 @@ public class UserServiceDB implements IUserService {
     public User updateUser(User newUser, int id_user) {
         return repository.findById(id_user)
                 .map(user -> {
-                    user.setName(newUser.getName());
-                    user.setLastname(newUser.getLastname());
-                    user.setEmail(newUser.getEmail());
-                    user.setAddress(newUser.getAddress());
-                    user.setRoles(newUser.getRoles());
+                    user.setName_user(newUser.getName_user());
+                    user.setLastname_user(newUser.getLastname_user());
+                    user.setEmail_user(newUser.getEmail_user());
+                    user.setAddress_user(newUser.getAddress_user());
+                    user.setRoles_user(newUser.getRoles_user());
                     return repository.save(user);
                 })
                 .orElseGet(() -> repository.save(newUser));

@@ -22,9 +22,9 @@ public class AddressController {
         return serviceDB.addAddress(address);
     }
 
-    @PutMapping
-    public Address updateAddress(@RequestBody Address address) {
-        return serviceDB.updateAddress(address);
+    @PutMapping(path="/{id_address}")
+    public Address updateAddress(@RequestBody Address address, @PathVariable int id_address) {
+        return serviceDB.updateAddress(address, id_address);
     }
 
     @DeleteMapping(path="/{id_address}")

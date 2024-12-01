@@ -3,11 +3,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  runApp(UserApp());
+  runApp(const UserApp());
 }
 
-// Entry point of the app
 class UserApp extends StatelessWidget {
+  const UserApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,24 +16,26 @@ class UserApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: UserListScreen(),
+      home: const UserListScreen(),
     );
   }
 }
 
 class UserListScreen extends StatefulWidget {
+  const UserListScreen({super.key});
+
   @override
   _UserListScreenState createState() => _UserListScreenState();
 }
 
 class _UserListScreenState extends State<UserListScreen> {
   final String apiUrl = 'http://10.0.2.2:8081/users'; // Backend API URL
-  List users = []; // List to store user data
+  List users = [];
 
   @override
   void initState() {
     super.initState();
-    fetchUsers(); // Load users when the screen initializes
+    fetchUsers();
   }
 
   // Fetch the list of users from the backend
@@ -52,15 +55,15 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Add a new user to the backend
-  Future<void> addUser(String name, String lastname, String email) async {
+  Future<void> addUser(String name_user, String lastname_user, String email_user) async {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'name': name,
-          'lastname': lastname,
-          'email': email,
+          'name_user': name_user,
+          'lastname_user': lastname_user,
+          'email_user': email_user,
         }),
       );
       if (response.statusCode == 200) {
@@ -72,16 +75,16 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Update a user's data
-  Future<void> updateUser(int idUser, String name, String lastname,
-      String email) async {
+  Future<void> updateUser(int idUser, String name_user, String lastname_user,
+      String email_user) async {
     try {
       final response = await http.put(
         Uri.parse('$apiUrl/$idUser'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'name': name,
-          'lastname': lastname,
-          'email': email,
+          'name_user': name_user,
+          'lastname_user': lastname_user,
+          'email_user': email_user,
         }),
       );
       if (response.statusCode == 200) {
@@ -114,28 +117,28 @@ class _UserListScreenState extends State<UserListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add User'),
+          title: const Text('Add User'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(hintText: 'Enter name'),
+                decoration: const InputDecoration(hintText: 'Enter name'),
               ),
               TextField(
                 controller: lastnameController,
-                decoration: InputDecoration(hintText: 'Enter lastname'),
+                decoration: const InputDecoration(hintText: 'Enter lastname'),
               ),
               TextField(
                 controller: emailController,
-                decoration: InputDecoration(hintText: 'Enter email'),
+                decoration: const InputDecoration(hintText: 'Enter email'),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context), // Close the dialog
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -143,7 +146,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     emailController.text);
                 Navigator.pop(context);
               },
-              child: Text('Add'),
+              child: const Text('Add'),
             ),
           ],
         );
@@ -166,28 +169,28 @@ class _UserListScreenState extends State<UserListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit User'),
+          title: const Text('Edit User'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(hintText: 'Enter name'),
+                decoration: const InputDecoration(hintText: 'Enter name'),
               ),
               TextField(
                 controller: lastnameController,
-                decoration: InputDecoration(hintText: 'Enter lastname'),
+                decoration: const InputDecoration(hintText: 'Enter lastname'),
               ),
               TextField(
                 controller: emailController,
-                decoration: InputDecoration(hintText: 'Enter email'),
+                decoration: const InputDecoration(hintText: 'Enter email'),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context), // Close the dialog
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -195,7 +198,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     emailController.text);
                 Navigator.pop(context);
               },
-              child: Text('Update'),
+              child: const Text('Update'),
             ),
           ],
         );
@@ -208,17 +211,17 @@ class _UserListScreenState extends State<UserListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Management'),
+        title: const Text('User Management'),
       ),
       body: ListView.builder(
-        itemCount: users.length, // Number of items in the list
+        itemCount: users.length,
         itemBuilder: (context, index) {
-          final user = users[index]; // Get the current user
+          final user = users[index];
 
           // Safely extract values or use empty strings if null
-          final name = user['name'] ?? '';
-          final lastname = user['lastname'] ?? '';
-          final email = user['email'] ?? '';
+          final name = user['name_user'] ?? '';
+          final lastname = user['lastname_user'] ?? '';
+          final email = user['email_user'] ?? '';
 
           return ListTile(
             title: Text('$name $lastname'),
@@ -227,17 +230,17 @@ class _UserListScreenState extends State<UserListScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.edit),
+                  icon: const Icon(Icons.edit),
                   onPressed: () =>
                       showEditUserDialog(
-                        user['id_user'], // Assuming id_user is non-null
+                        user['id_user'],
                         name,
                         lastname,
                         email,
                       ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: () => deleteUser(user['id_user']),
                 ),
               ],
@@ -247,7 +250,7 @@ class _UserListScreenState extends State<UserListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: showAddUserDialog, // Show the add user dialog
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

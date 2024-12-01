@@ -1,29 +1,27 @@
 package org.helha.be.sortieappbackend.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @Entity
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id_role;
-    private Roles roleType;
+    private String name_role;
 
     //Ajout relation
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id_user") // Clé étrangère dans Address
-    private User user;
+    private User user_role;
 
     public Role() {}
 
-    public Role(int id_role, Roles roleType, User user) {
+    public Role(int id_role, String name_role, User user_role) {
         this.id_role = id_role;
-        this.roleType = roleType;
-        this.user = user;
+        this.name_role = name_role;
+        this.user_role = user_role;
     }
 }

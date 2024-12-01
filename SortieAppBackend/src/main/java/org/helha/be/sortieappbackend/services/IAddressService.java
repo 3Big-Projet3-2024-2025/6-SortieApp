@@ -7,6 +7,6 @@ import java.util.List;
 public interface IAddressService {
     public List<Address> getAddresses();
     public Address addAddress(Address address);
-    public Address updateAddress(Address address);
+    public Address updateAddress(Address address, int id_address);
     public void deleteAddress(int id_address);
 }
