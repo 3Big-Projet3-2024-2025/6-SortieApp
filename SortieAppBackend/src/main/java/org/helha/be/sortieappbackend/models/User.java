@@ -16,16 +16,14 @@ public class User {
     private String name_user;
     private String email_user;
     private String password_user;
-
-    @OneToOne(mappedBy = "user_address")
-    private Address address_user;
+    private String address_user;
 
     @OneToMany(mappedBy = "user_role")
     private List<Role> roles_user;
 
     public User() {}
 
-    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, Address address_user, List<Role> roles_user) {
+    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, List<Role> roles_user) {
         this.id_user = id_user;
         this.lastname_user = lastname_user;
         this.name_user = name_user;
