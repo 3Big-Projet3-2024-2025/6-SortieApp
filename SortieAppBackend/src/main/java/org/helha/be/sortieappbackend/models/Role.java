@@ -1,7 +1,10 @@
 package org.helha.be.sortieappbackend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @Entity
@@ -12,16 +15,15 @@ public class Role {
     private int id_role;
     private String name_role;
 
-    //Ajout relation
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id_user") // Clé étrangère dans Address
-    private User user_role;
+    @OneToMany(mappedBy = "role_user", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("role") // Ignore the role of each user
+    private List<User> users;
 
     public Role() {}
 
-    public Role(int id_role, String name_role, User user_role) {
+    public Role(int id_role, String name_role, List<User> users) {
         this.id_role = id_role;
         this.name_role = name_role;
-        this.user_role = user_role;
+        this.users = users;
     }
 }

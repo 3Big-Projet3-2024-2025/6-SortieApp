@@ -30,6 +30,7 @@ class UserListScreen extends StatefulWidget {
 
 class _UserListScreenState extends State<UserListScreen> {
   final String apiUrl = 'http://10.0.2.2:8081/users'; // Backend API URL
+  //final String apiUrl = 'http://localhost:8081/users';
   List users = [];
 
   @override
@@ -55,7 +56,7 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Add a new user to the backend
-  Future<void> addUser(String name_user, String lastname_user, String email_user) async {
+  Future<void> addUser(String name_user, String lastname_user, String email_user, String address_user) async {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -64,6 +65,7 @@ class _UserListScreenState extends State<UserListScreen> {
           'name_user': name_user,
           'lastname_user': lastname_user,
           'email_user': email_user,
+          'address_user': address_user,
         }),
       );
       if (response.statusCode == 200) {
@@ -75,8 +77,7 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Update a user's data
-  Future<void> updateUser(int idUser, String name_user, String lastname_user,
-      String email_user) async {
+  Future<void> updateUser(int idUser, String name_user, String lastname_user, String email_user, String address_user) async {
     try {
       final response = await http.put(
         Uri.parse('$apiUrl/$idUser'),
@@ -85,6 +86,7 @@ class _UserListScreenState extends State<UserListScreen> {
           'name_user': name_user,
           'lastname_user': lastname_user,
           'email_user': email_user,
+          'address_user': address_user,
         }),
       );
       if (response.statusCode == 200) {
@@ -112,6 +114,7 @@ class _UserListScreenState extends State<UserListScreen> {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
+    final TextEditingController addressController = TextEditingController();
 
     showDialog(
       context: context,
@@ -133,6 +136,10 @@ class _UserListScreenState extends State<UserListScreen> {
                 controller: emailController,
                 decoration: const InputDecoration(hintText: 'Enter email'),
               ),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(hintText: 'Enter address'),
+              ),
             ],
           ),
           actions: [
@@ -142,8 +149,7 @@ class _UserListScreenState extends State<UserListScreen> {
             ),
             TextButton(
               onPressed: () {
-                addUser(nameController.text, lastnameController.text,
-                    emailController.text);
+                addUser(nameController.text, lastnameController.text, emailController.text, addressController.text);
                 Navigator.pop(context);
               },
               child: const Text('Add'),
@@ -155,15 +161,16 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Show a dialog to edit an existing user
-  void showEditUserDialog(int idUser, String currentName,
-      String currentLastname, String currentEmail) {
+  void showEditUserDialog(int idUser, String currentName, String currentLastname, String currentEmail, String currentAddress) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
+    final TextEditingController addressController = TextEditingController();
 
     nameController.text = currentName;
     lastnameController.text = currentLastname;
     emailController.text = currentEmail;
+    addressController.text = currentAddress;
 
     showDialog(
       context: context,
@@ -185,6 +192,10 @@ class _UserListScreenState extends State<UserListScreen> {
                 controller: emailController,
                 decoration: const InputDecoration(hintText: 'Enter email'),
               ),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(hintText: 'Enter address'),
+              ),
             ],
           ),
           actions: [
@@ -194,8 +205,7 @@ class _UserListScreenState extends State<UserListScreen> {
             ),
             TextButton(
               onPressed: () {
-                updateUser(idUser, nameController.text, lastnameController.text,
-                    emailController.text);
+                updateUser(idUser, nameController.text, lastnameController.text, emailController.text, addressController.text);
                 Navigator.pop(context);
               },
               child: const Text('Update'),
@@ -222,22 +232,23 @@ class _UserListScreenState extends State<UserListScreen> {
           final name = user['name_user'] ?? '';
           final lastname = user['lastname_user'] ?? '';
           final email = user['email_user'] ?? '';
+          final address = user['address_user'] ?? '';
 
           return ListTile(
             title: Text('$name $lastname'),
-            subtitle: Text(email),
+            subtitle: Text('$email\n$address'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () =>
-                      showEditUserDialog(
-                        user['id_user'],
-                        name,
-                        lastname,
-                        email,
-                      ),
+                  onPressed: () => showEditUserDialog(
+                    user['id_user'],
+                    name,
+                    lastname,
+                    email,
+                    address,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),

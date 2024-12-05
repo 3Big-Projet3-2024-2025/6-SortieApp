@@ -1,9 +1,8 @@
 package org.helha.be.sortieappbackend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 @Entity
@@ -18,18 +17,20 @@ public class User {
     private String password_user;
     private String address_user;
 
-    @OneToMany(mappedBy = "user_role")
-    private List<Role> roles_user;
+    @ManyToOne
+    @JoinColumn(name="role_id") // Create column 'role_id' in User table
+    @JsonIgnoreProperties("users") // Ignore users list in the role
+    private Role role_user;
 
     public User() {}
 
-    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, List<Role> roles_user) {
+    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, Role role_user) {
         this.id_user = id_user;
         this.lastname_user = lastname_user;
         this.name_user = name_user;
         this.email_user = email_user;
         this.password_user = password_user;
         this.address_user = address_user;
-        this.roles_user = roles_user;
+        this.role_user = role_user;
     }
 }
