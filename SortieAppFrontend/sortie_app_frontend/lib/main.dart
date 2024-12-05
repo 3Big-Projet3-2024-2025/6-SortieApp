@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -29,14 +30,27 @@ class UserListScreen extends StatefulWidget {
 }
 
 class _UserListScreenState extends State<UserListScreen> {
-  final String apiUrl = 'http://10.0.2.2:8081/users'; // Backend API URL
-  //final String apiUrl = 'http://localhost:8081/users';
+  String getBackendUrl() {
+    if (kIsWeb) {
+      return 'http://localhost:8081'; // URL Backend for Web
+    } else {
+      return 'http://10.0.2.2:8081'; // URL Backend for Android Emulator
+    }
+  }
+
+  late String apiUrl;
+  late String rolesApiUrl;
+
   List users = [];
+  List roles = [];
 
   @override
   void initState() {
     super.initState();
+    apiUrl = '${getBackendUrl()}/users';
+    rolesApiUrl = '${getBackendUrl()}/roles';
     fetchUsers();
+    fetchRoles();
   }
 
   // Fetch the list of users from the backend
@@ -55,8 +69,25 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
+  // Fetch the list of roles from the backend
+  Future<void> fetchRoles() async {
+    try {
+      final response = await http.get(Uri.parse(rolesApiUrl));
+      if (response.statusCode == 200) {
+        setState(() {
+          roles = json.decode(response.body);
+        });
+      } else {
+        throw Exception('Failed to load roles');
+      }
+    } catch (e) {
+      print('Error fetching roles: $e');
+    }
+  }
+
   // Add a new user to the backend
-  Future<void> addUser(String name_user, String lastname_user, String email_user, String address_user) async {
+  Future<void> addUser(String name_user, String lastname_user,
+      String email_user, String address_user, int id_role) async {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -66,6 +97,7 @@ class _UserListScreenState extends State<UserListScreen> {
           'lastname_user': lastname_user,
           'email_user': email_user,
           'address_user': address_user,
+          'role_user': {'id_role': id_role}, // Send role ID
         }),
       );
       if (response.statusCode == 200) {
@@ -77,7 +109,8 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Update a user's data
-  Future<void> updateUser(int idUser, String name_user, String lastname_user, String email_user, String address_user) async {
+  Future<void> updateUser(int idUser, String name_user, String lastname_user,
+      String email_user, String address_user, int id_role) async {
     try {
       final response = await http.put(
         Uri.parse('$apiUrl/$idUser'),
@@ -87,6 +120,7 @@ class _UserListScreenState extends State<UserListScreen> {
           'lastname_user': lastname_user,
           'email_user': email_user,
           'address_user': address_user,
+          'role_user': {'id_role': id_role}, // Send role ID
         }),
       );
       if (response.statusCode == 200) {
@@ -110,11 +144,13 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Show a dialog to add a new user
-  void showAddUserDialog() {
+  void showAddUserDialog() async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController addressController = TextEditingController();
+
+    int? selectedRoleId;
 
     showDialog(
       context: context,
@@ -140,6 +176,18 @@ class _UserListScreenState extends State<UserListScreen> {
                 controller: addressController,
                 decoration: const InputDecoration(hintText: 'Enter address'),
               ),
+              DropdownButtonFormField<int>(
+                decoration: const InputDecoration(hintText: 'Select Role'),
+                items: roles.map<DropdownMenuItem<int>>((role) {
+                  return DropdownMenuItem<int>(
+                    value: role['id_role'],
+                    child: Text(role['name_role']),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  selectedRoleId = value;
+                },
+              ),
             ],
           ),
           actions: [
@@ -149,8 +197,16 @@ class _UserListScreenState extends State<UserListScreen> {
             ),
             TextButton(
               onPressed: () {
-                addUser(nameController.text, lastnameController.text, emailController.text, addressController.text);
-                Navigator.pop(context);
+                if (selectedRoleId != null) {
+                  addUser(
+                    nameController.text,
+                    lastnameController.text,
+                    emailController.text,
+                    addressController.text,
+                    selectedRoleId!,
+                  );
+                  Navigator.pop(context);
+                }
               },
               child: const Text('Add'),
             ),
@@ -161,7 +217,13 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   // Show a dialog to edit an existing user
-  void showEditUserDialog(int idUser, String currentName, String currentLastname, String currentEmail, String currentAddress) {
+  void showEditUserDialog(
+      int idUser,
+      String currentName,
+      String currentLastname,
+      String currentEmail,
+      String currentAddress,
+      int currentRoleId) async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
@@ -171,6 +233,12 @@ class _UserListScreenState extends State<UserListScreen> {
     lastnameController.text = currentLastname;
     emailController.text = currentEmail;
     addressController.text = currentAddress;
+
+    if (roles.isEmpty) {
+      await fetchRoles(); // Reload roles if they are not loaded
+    }
+
+    int? selectedRoleId = currentRoleId;
 
     showDialog(
       context: context,
@@ -196,6 +264,19 @@ class _UserListScreenState extends State<UserListScreen> {
                 controller: addressController,
                 decoration: const InputDecoration(hintText: 'Enter address'),
               ),
+              DropdownButtonFormField<int>(
+                value: selectedRoleId,
+                decoration: const InputDecoration(hintText: 'Select Role'),
+                items: roles.map<DropdownMenuItem<int>>((role) {
+                  return DropdownMenuItem<int>(
+                    value: role['id_role'],
+                    child: Text(role['name_role']),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  selectedRoleId = value;
+                },
+              ),
             ],
           ),
           actions: [
@@ -205,8 +286,17 @@ class _UserListScreenState extends State<UserListScreen> {
             ),
             TextButton(
               onPressed: () {
-                updateUser(idUser, nameController.text, lastnameController.text, emailController.text, addressController.text);
-                Navigator.pop(context);
+                if (selectedRoleId != null) {
+                  updateUser(
+                    idUser,
+                    nameController.text,
+                    lastnameController.text,
+                    emailController.text,
+                    addressController.text,
+                    selectedRoleId!,
+                  );
+                  Navigator.pop(context);
+                }
               },
               child: const Text('Update'),
             ),
@@ -216,7 +306,6 @@ class _UserListScreenState extends State<UserListScreen> {
     );
   }
 
-  // Main UI for the screen
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -228,15 +317,13 @@ class _UserListScreenState extends State<UserListScreen> {
         itemBuilder: (context, index) {
           final user = users[index];
 
-          // Safely extract values or use empty strings if null
-          final name = user['name_user'] ?? '';
-          final lastname = user['lastname_user'] ?? '';
-          final email = user['email_user'] ?? '';
-          final address = user['address_user'] ?? '';
+          final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
+          final address = user['address_user'] ?? 'No Address';
+          final email = user['email_user'] ?? 'No Email';
 
           return ListTile(
-            title: Text('$name $lastname'),
-            subtitle: Text('$email\n$address'),
+            title: Text('${user['name_user']} ${user['lastname_user']}'),
+            subtitle: Text('$roleName\n$email\n$address'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -244,10 +331,11 @@ class _UserListScreenState extends State<UserListScreen> {
                   icon: const Icon(Icons.edit),
                   onPressed: () => showEditUserDialog(
                     user['id_user'],
-                    name,
-                    lastname,
-                    email,
-                    address,
+                    user['name_user'] ?? '',
+                    user['lastname_user'] ?? '',
+                    user['email_user'] ?? '',
+                    user['address_user'] ?? '',
+                    user['role_user']?['id_role'] ?? 0,
                   ),
                 ),
                 IconButton(
@@ -260,7 +348,7 @@ class _UserListScreenState extends State<UserListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: showAddUserDialog, // Show the add user dialog
+        onPressed: showAddUserDialog,
         child: const Icon(Icons.add),
       ),
     );
