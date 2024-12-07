@@ -5,6 +5,7 @@ import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.RoleServiceDB;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,9 @@ public class UserController {
 
     @Autowired
     RoleServiceDB roleServiceDB;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping
     public List<User> getUsers() { return serviceDB.getUsers(); }
@@ -45,6 +49,9 @@ public class UserController {
         existingUser.setLastname_user(user.getLastname_user());
         existingUser.setName_user(user.getName_user());
         existingUser.setEmail_user(user.getEmail_user());
+        if (user.getPassword_user() != null) {
+            existingUser.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
+        }
         existingUser.setPassword_user(user.getPassword_user());
         existingUser.setAddress_user(user.getAddress_user());
 
