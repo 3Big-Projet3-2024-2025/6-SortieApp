@@ -1,29 +1,29 @@
 package org.helha.be.sortieappbackend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+import java.util.List;
+
+@Data
 @Entity
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id_role;
-    private Roles roleType;
+    private String name_role;
 
-    //Ajout relation
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id_user") // Clé étrangère dans Address
-    private User user;
+    @OneToMany(mappedBy = "role_user", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("role") // Ignore the role of each user
+    private List<User> users;
 
     public Role() {}
 
-    public Role(int id_role, Roles roleType, User user) {
+    public Role(int id_role, String name_role, List<User> users) {
         this.id_role = id_role;
-        this.roleType = roleType;
-        this.user = user;
+        this.name_role = name_role;
+        this.users = users;
     }
 }
