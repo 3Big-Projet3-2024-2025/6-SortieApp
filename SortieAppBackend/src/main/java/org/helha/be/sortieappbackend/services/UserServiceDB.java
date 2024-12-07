@@ -33,7 +33,7 @@ public class UserServiceDB implements IUserService {
                 .map(user -> {
                     user.setName_user(newUser.getName_user());
                     user.setLastname_user(newUser.getLastname_user());
-                    user.setEmail_user(newUser.getEmail_user());
+                    user.setEmail(newUser.getEmail());
                     user.setAddress_user(newUser.getAddress_user());
                     user.setPassword_user(newUser.getPassword_user());
 

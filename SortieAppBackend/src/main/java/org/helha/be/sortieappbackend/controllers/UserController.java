@@ -48,7 +48,7 @@ public class UserController {
         // Update fields of the current user
         existingUser.setLastname_user(user.getLastname_user());
         existingUser.setName_user(user.getName_user());
-        existingUser.setEmail_user(user.getEmail_user());
+        existingUser.setEmail(user.getEmail());
         if (user.getPassword_user() != null) {
             existingUser.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
         }
