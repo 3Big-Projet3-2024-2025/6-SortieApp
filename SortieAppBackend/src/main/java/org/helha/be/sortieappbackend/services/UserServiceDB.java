@@ -1,8 +1,10 @@
 package org.helha.be.sortieappbackend.services;
 
+import org.helha.be.sortieappbackend.events.UserRegisterEvent;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ public class UserServiceDB implements IUserService {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     public List<User> getUsers() {
         return repository.findAll();
     }
@@ -25,7 +30,12 @@ public class UserServiceDB implements IUserService {
     }
 
     public User addUser(User user) {
-        return repository.save(user);
+        User savedUser = repository.save(user);
+
+        // Publish an event when a new user is registered
+        eventPublisher.publishEvent(new UserRegisterEvent(this, savedUser));
+
+        return savedUser;
     }
 
     public User updateUser(User newUser, int id_user) {
@@ -33,7 +43,7 @@ public class UserServiceDB implements IUserService {
                 .map(user -> {
                     user.setName_user(newUser.getName_user());
                     user.setLastname_user(newUser.getLastname_user());
-                    user.setEmail_user(newUser.getEmail_user());
+                    user.setEmail(newUser.getEmail());
                     user.setAddress_user(newUser.getAddress_user());
                     user.setPassword_user(newUser.getPassword_user());
 
