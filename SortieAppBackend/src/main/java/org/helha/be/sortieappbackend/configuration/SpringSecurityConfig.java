@@ -28,10 +28,10 @@ public class SpringSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
-        return http.csrf().disable()
+        return http.csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> {
-                    authorizeRequests.requestMatchers("/loans/**").permitAll();//hasRole("USER");
-                    authorizeRequests.requestMatchers("/swagger-ui/**","/v3/api-docs","/users","/Autorisations","auth/login","roles").permitAll();
+                    authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**").hasAnyAuthority("ROLE_ADMIN");
+                    authorizeRequests.requestMatchers("/swagger-ui/**","/v3/api-docs","/users","users/all","auth/login","roles").permitAll();
                     authorizeRequests.anyRequest().authenticated();
                 }).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }

@@ -35,7 +35,7 @@ public class UserController {
                     .orElseThrow(() -> new RuntimeException("Role not found"));
             user.setRole_user(role);
         }
-
+        user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
         return serviceDB.addUser(user);
     }
 
