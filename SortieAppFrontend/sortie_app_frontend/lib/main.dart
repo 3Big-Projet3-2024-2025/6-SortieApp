@@ -53,7 +53,6 @@ class _UserListScreenState extends State<UserListScreen> {
     fetchRoles();
   }
 
-  // Fetch the list of users from the backend
   Future<void> fetchUsers() async {
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -69,7 +68,6 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
-  // Fetch the list of roles from the backend
   Future<void> fetchRoles() async {
     try {
       final response = await http.get(Uri.parse(rolesApiUrl));
@@ -85,7 +83,6 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
-  // Add a new user to the backend
   Future<void> addUser(String name_user, String lastname_user,
       String email_user, String address_user, int id_role) async {
     try {
@@ -97,18 +94,18 @@ class _UserListScreenState extends State<UserListScreen> {
           'lastname_user': lastname_user,
           'email_user': email_user,
           'address_user': address_user,
-          'role_user': {'id_role': id_role}, // Send role ID
+          'role_user': {'id_role': id_role},
+          'activated_user': true, // Default value for new users
         }),
       );
       if (response.statusCode == 200) {
-        fetchUsers(); // Refresh the user list after adding
+        fetchUsers();
       }
     } catch (e) {
       print('Error: $e');
     }
   }
 
-  // Update a user's data
   Future<void> updateUser(int idUser, String name_user, String lastname_user,
       String email_user, String address_user, int id_role) async {
     try {
@@ -120,30 +117,28 @@ class _UserListScreenState extends State<UserListScreen> {
           'lastname_user': lastname_user,
           'email_user': email_user,
           'address_user': address_user,
-          'role_user': {'id_role': id_role}, // Send role ID
+          'role_user': {'id_role': id_role},
         }),
       );
       if (response.statusCode == 200) {
-        fetchUsers(); // Refresh the user list after updating
+        fetchUsers();
       }
     } catch (e) {
       print('Error: $e');
     }
   }
 
-  // Delete a user
   Future<void> deleteUser(int idUser) async {
     try {
       final response = await http.delete(Uri.parse('$apiUrl/$idUser'));
       if (response.statusCode == 200) {
-        fetchUsers(); // Refresh the user list after deleting
+        fetchUsers();
       }
     } catch (e) {
       print('Error: $e');
     }
   }
 
-  // Show a dialog to add a new user
   void showAddUserDialog() async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
@@ -192,7 +187,7 @@ class _UserListScreenState extends State<UserListScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // Close the dialog
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             TextButton(
@@ -216,14 +211,14 @@ class _UserListScreenState extends State<UserListScreen> {
     );
   }
 
-  // Show a dialog to edit an existing user
   void showEditUserDialog(
       int idUser,
       String currentName,
       String currentLastname,
       String currentEmail,
       String currentAddress,
-      int currentRoleId) async {
+      int currentRoleId,
+      ) async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
@@ -233,10 +228,6 @@ class _UserListScreenState extends State<UserListScreen> {
     lastnameController.text = currentLastname;
     emailController.text = currentEmail;
     addressController.text = currentAddress;
-
-    if (roles.isEmpty) {
-      await fetchRoles(); // Reload roles if they are not loaded
-    }
 
     int? selectedRoleId = currentRoleId;
 
@@ -281,7 +272,7 @@ class _UserListScreenState extends State<UserListScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // Close the dialog
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             TextButton(
@@ -323,7 +314,27 @@ class _UserListScreenState extends State<UserListScreen> {
 
           return ListTile(
             title: Text('${user['name_user']} ${user['lastname_user']}'),
-            subtitle: Text('$roleName\n$email\n$address'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$roleName\n$email\n$address'),
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    const Text('Active: '),
+                    Text(
+                      user['activated_user'] == true ? 'Yes' : 'No',
+                      style: TextStyle(
+                        color: user['activated_user'] == true
+                            ? Colors.green
+                            : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
