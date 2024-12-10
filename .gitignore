@@ -40,3 +40,4 @@ out/
 SortieAppBackend/data/mariadb/mysql/*
 !SortieAppBackend/data/mariadb/mysql/.gitkeep
 SortieAppBackend/data/mariadbWindows/
+SortieAppFrontend/sortie_app_frontend/lib/example/
