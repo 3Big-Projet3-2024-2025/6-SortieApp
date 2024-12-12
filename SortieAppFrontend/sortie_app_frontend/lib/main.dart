@@ -13,7 +13,6 @@ class UserApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'User Management',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -95,7 +94,7 @@ class _UserListScreenState extends State<UserListScreen> {
           'email_user': email_user,
           'address_user': address_user,
           'role_user': {'id_role': id_role},
-          'activated_user': true, // Default value for new users
+          //'activated_user': true, // Default value for new users
         }),
       );
       if (response.statusCode == 200) {
@@ -301,7 +300,7 @@ class _UserListScreenState extends State<UserListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Management'),
+        title: null,
       ),
       body: ListView.builder(
         itemCount: users.length,

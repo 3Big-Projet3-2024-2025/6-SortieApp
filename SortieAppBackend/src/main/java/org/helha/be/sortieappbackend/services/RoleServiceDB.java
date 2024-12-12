@@ -4,6 +4,7 @@
  */
 package org.helha.be.sortieappbackend.services;
 
+import lombok.Data;
 import org.helha.be.sortieappbackend.models.Role;
 import org.helha.be.sortieappbackend.repositories.jpa.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import java.util.Optional;
  */
 @Service
 @Primary
+@Data
 public class RoleServiceDB {
 
     @Autowired

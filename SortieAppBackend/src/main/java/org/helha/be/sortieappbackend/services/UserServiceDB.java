@@ -92,10 +92,10 @@ public class UserServiceDB implements IUserService {
                         user.setActivated_user(!user.isActivated_user());
                     }
                     */
-                    if (user.isActivated_user() == newUser.isActivated_user()) {
+                    if (user.isActivated_user()) {
                         // Nothing to do
                     } else {
-                        user.setActivated_user(newUser.isActivated_user());
+                        user.setActivated_user(true);
                     }
 
                     // Save and return the updated user
