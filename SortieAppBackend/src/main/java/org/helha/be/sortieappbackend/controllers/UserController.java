@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path="/users")
+@RequestMapping(path = "/users")
 @CrossOrigin(origins = "*")
 public class UserController {
 
@@ -25,17 +25,14 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
 
     @GetMapping
-    public List<User> getUsers() { return serviceDB.getUsers(); }
+    public List<User> getUsers() {
+        return serviceDB.getUsers();
+    }
 
     @PostMapping
     public User addUser(@RequestBody User user) {
         // Check if a role is defined
-        if (user.getRole_user() != null && user.getRole_user().getId_role() != 0) {
-            Role role = roleServiceDB.getRoleById(user.getRole_user().getId_role())
-                    .orElseThrow(() -> new RuntimeException("Role not found"));
-            user.setRole_user(role);
-        }
-        user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
+
         return serviceDB.addUser(user);
     }
 
