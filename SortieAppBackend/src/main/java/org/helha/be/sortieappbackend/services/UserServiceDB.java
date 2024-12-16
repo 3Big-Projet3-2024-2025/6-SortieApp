@@ -5,6 +5,7 @@
 package org.helha.be.sortieappbackend.services;
 
 import org.helha.be.sortieappbackend.models.Role;
+import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ public class UserServiceDB implements IUserService {
 
     @Autowired
     private RoleServiceDB roleServiceDB;
+    @Autowired
+    private SchoolServiceDB schoolServiceDB;
 
     /**
      * Retrieve all users from the database.
@@ -79,6 +82,14 @@ public class UserServiceDB implements IUserService {
                         user.setPassword_user(newUser.getPassword_user());
                     }
 
+                    // Update and validate the school if specified
+                    if (newUser.getSchool_user() != null && newUser.getSchool_user().getId_school() != 0) {
+                        School school = schoolServiceDB.getSchoolById(newUser.getSchool_user().getId_school())
+                                .orElseThrow(() -> new IllegalArgumentException("School with ID " + newUser.getSchool_user().getId_school() + " not found"));
+                        user.setSchool_user(school);
+                    }
+
+
                     // Update and validate the role if specified
                     if (newUser.getRole_user() != null && newUser.getRole_user().getId_role() != 0) {
                         Role role = roleServiceDB.getRoleById(newUser.getRole_user().getId_role())
@@ -87,16 +98,13 @@ public class UserServiceDB implements IUserService {
                     }
 
                     // Update activation status
-                    /*
-                    if (newUser.isActivated_user()) {
-                        user.setActivated_user(!user.isActivated_user());
-                    }
-                    */
                     if (user.isActivated_user()) {
                         // Nothing to do
                     } else {
                         user.setActivated_user(true);
                     }
+
+                    user.setPicture_user((newUser.getPicture_user()));
 
                     // Save and return the updated user
                     return repository.save(user);

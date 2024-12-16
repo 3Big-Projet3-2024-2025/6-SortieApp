@@ -49,11 +49,6 @@ public class User {
     private String address_user;
 
     /**
-     * Indicates whether the User account is activated.
-     */
-    private boolean isActivated_user;
-
-    /**
      * Many-to-One relationship with the School entity.
      * Creates a foreign key column `school_id` in the User table and links to the School entity.
      * Ignores the users list in the School entity during JSON serialization/deserialization.
@@ -74,6 +69,13 @@ public class User {
     private Role role_user;
 
     /**
+     * Indicates whether the User account is activated.
+     */
+    private boolean isActivated_user;
+
+    private String picture_user;
+
+    /**
      * Default constructor.
      */
     public User() {}
@@ -91,7 +93,7 @@ public class User {
      * @param role_user         the Role associated with the User.
      * @param isActivated_user  whether the User account is activated.
      */
-    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, School school_user, Role role_user, boolean isActivated_user) {
+    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, School school_user, Role role_user, boolean isActivated_user, String picture_user) {
         this.id_user = id_user;
         this.lastname_user = lastname_user;
         this.name_user = name_user;
@@ -101,5 +103,6 @@ public class User {
         this.school_user = school_user;
         this.role_user = role_user;
         this.isActivated_user = isActivated_user;
+        this.picture_user = picture_user;
     }
 }
