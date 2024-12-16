@@ -28,7 +28,7 @@ class UserApp extends StatelessWidget {
           ),
         ],
       ),
-        body: UserListScreen(),
+      body: UserListScreen(),
     );
   }
 }
@@ -320,9 +320,6 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Management'),
-      ),
       body: ListView.builder(
         itemCount: users.length,
         itemBuilder: (context, index) {
@@ -341,17 +338,17 @@ class _UserListScreenState extends State<UserListScreen> {
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () => showEditUserDialog(
-                    user['id_user'],
+                    user['id'],
                     user['name_user'] ?? '',
                     user['lastname_user'] ?? '',
-                    user['email_user'] ?? '',
+                    user['email'] ?? '',
                     user['address_user'] ?? '',
                     user['role_user']?['id_role'] ?? 0,
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),
-                  onPressed: () => deleteUser(user['id_user']),
+                  onPressed: () => deleteUser(user['id']),
                 ),
               ],
             ),
