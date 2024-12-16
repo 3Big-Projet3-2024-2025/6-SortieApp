@@ -54,13 +54,23 @@ public class User {
     private boolean isActivated_user;
 
     /**
+     * Many-to-One relationship with the School entity.
+     * Creates a foreign key column `school_id` in the User table and links to the School entity.
+     * Ignores the users list in the School entity during JSON serialization/deserialization.
+     */
+    @ManyToOne
+    @JoinColumn(name = "school_id")
+    @JsonIgnoreProperties("users_school")
+    private School school_user;
+
+    /**
      * Many-to-One relationship with the Role entity.
      * Creates a foreign key column `role_id` in the User table and links to the Role entity.
      * Ignores the users list in the Role entity during JSON serialization/deserialization.
      */
     @ManyToOne
-    @JoinColumn(name = "role_id") // Create column 'role_id' in User table
-    @JsonIgnoreProperties("users") // Ignore users list in the Role entity
+    @JoinColumn(name = "role_id")
+    @JsonIgnoreProperties("users")
     private Role role_user;
 
     /**
@@ -77,17 +87,19 @@ public class User {
      * @param email_user        the email address of the User.
      * @param password_user     the password of the User.
      * @param address_user      the address of the User.
+     * @param school_user       the School associated with the User.
      * @param role_user         the Role associated with the User.
      * @param isActivated_user  whether the User account is activated.
      */
-    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, Role role_user, boolean isActivated_user) {
+    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, School school_user, Role role_user, boolean isActivated_user) {
         this.id_user = id_user;
         this.lastname_user = lastname_user;
         this.name_user = name_user;
         this.email_user = email_user;
         this.password_user = password_user;
         this.address_user = address_user;
+        this.school_user = school_user;
         this.role_user = role_user;
-        this.isActivated_user = false;
+        this.isActivated_user = isActivated_user;
     }
 }
