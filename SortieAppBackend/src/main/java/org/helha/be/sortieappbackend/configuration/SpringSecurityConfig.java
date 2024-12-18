@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SpringSecurityConfig {
+public class    SpringSecurityConfig {
     @Autowired
     UserDetailsService userDetailsService;
     @Autowired
@@ -31,7 +31,7 @@ public class SpringSecurityConfig {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> {
                     authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**").hasAnyAuthority("ROLE_ADMIN","");
-                    authorizeRequests.requestMatchers("/swagger-ui/**","/schools","/schools/**","/v3/api-docs","/users","users/all","users/**","auth/login","roles").permitAll();
+                    authorizeRequests.requestMatchers("/swagger-ui/**","/schools","/schools/**","/v3/api-docs","/users","users/all","users/**","auth/login","roles","/qrcodes/","qrcodes/**").permitAll();
                     authorizeRequests.anyRequest().authenticated();
                 }).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
