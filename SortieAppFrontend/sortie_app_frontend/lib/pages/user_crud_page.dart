@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get/get.dart';
 
+import '../utils/router.dart';
+
 /*void main() {
   runApp(const UserApp());
 }*/
@@ -23,7 +25,7 @@ class UserApp extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              Get.offNamed('/home');
+              redirectHome();
             },
           ),
         ],
