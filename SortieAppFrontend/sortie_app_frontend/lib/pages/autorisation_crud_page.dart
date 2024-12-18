@@ -101,7 +101,8 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
       if (streamedResponse.statusCode == 200 || streamedResponse.statusCode == 201) {
         fetchAutorisations();
       } else {
-        throw Exception('Failed to save autorisation');
+        final code = streamedResponse.statusCode;
+        throw Exception('Failed to save autorisation $code');
       }
     } catch (e) {
       print('Error saving autorisation: $e');
@@ -292,6 +293,7 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
                           ? null
                           : heureFinController.text,
                       jours: selectedType == 'Weekly' ? selectedDays : null,
+                      userId: 1
                     );
                     Navigator.pop(context);
                   },
