@@ -1,9 +1,7 @@
 package org.helha.be.sortieappbackend.controllers;
 
 import org.helha.be.sortieappbackend.models.School;
-import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.SchoolServiceDB;
-import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,42 +15,44 @@ public class SchoolController {
     @Autowired
     private SchoolServiceDB schoolService;
 
-    @Autowired
-    private UserServiceDB userService;
-
+    /**
+     * Retrieves all schools.
+     *
+     * @return a list of schools.
+     */
     @GetMapping
     public List<School> getSchools() {
         return schoolService.getSchools();
     }
 
+    /**
+     * Adds a new school.
+     *
+     * @param school the school to add.
+     * @return the added school.
+     */
     @PostMapping
     public School addSchool(@RequestBody School school) {
-        if (school.getUsers_school() != null) {
-            for (User user : school.getUsers_school()) {
-                if (user.getId_user() != 0) {
-                    User existingUser = userService.getUserById(user.getId_user())
-                            .orElseThrow(() -> new RuntimeException("User not found"));
-                    user.setSchool_user(school);
-                }
-            }
-        }
         return schoolService.addSchool(school);
     }
 
+    /**
+     * Updates an existing school.
+     *
+     * @param school    the updated school data.
+     * @param id_school the ID of the school to update.
+     * @return the updated school.
+     */
     @PutMapping(path = "/{id_school}")
     public School updateSchool(@RequestBody School school, @PathVariable int id_school) {
-        if (school.getUsers_school() != null) {
-            for (User user : school.getUsers_school()) {
-                if (user.getId_user() != 0) {
-                    User existingUser = userService.getUserById(user.getId_user())
-                            .orElseThrow(() -> new RuntimeException("User not found"));
-                    user.setSchool_user(school);
-                }
-            }
-        }
         return schoolService.updateSchool(school, id_school);
     }
 
+    /**
+     * Deletes a school by ID.
+     *
+     * @param id_school the ID of the school to delete.
+     */
     @DeleteMapping(path = "/{id_school}")
     public void deleteSchool(@PathVariable int id_school) {
         schoolService.deleteSchool(id_school);
