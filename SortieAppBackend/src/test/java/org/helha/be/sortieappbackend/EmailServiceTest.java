@@ -22,7 +22,6 @@ public class EmailServiceTest {
         // Act
         emailService.sendActivationEmail(testEmail, activationLink);
 
-        // Assert
         // Manually verify that the email is received in your test SMTP inbox (e.g., Mailtrap).
         // Alternatively, if using a mock SMTP server, you can assert the received email.
     }
