@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:get/get.dart';
+import '../utils/router.dart';
 
 
 class LoginController extends GetxController {
@@ -38,7 +39,7 @@ class LoginController extends GetxController {
 
         await secureStorage.write(key: 'accesToken', value: accesToken);
         await secureStorage.write(key: 'refreshToken', value: refreshToken);
-        Get.offNamed('/home');
+        redirectHome();
       } else {
         Get.snackbar('Login Failed', 'Invalid credentials');
       }

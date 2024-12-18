@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get/get.dart';
 
+import '../utils/router.dart';
+
 class SchoolsCrud extends StatelessWidget {
   const SchoolsCrud({super.key});
 
@@ -17,7 +19,7 @@ class SchoolsCrud extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () async {
-                Get.offNamed('/home');
+                redirectHome();
               },
             ),
           ],

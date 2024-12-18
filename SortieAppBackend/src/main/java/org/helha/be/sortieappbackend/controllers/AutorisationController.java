@@ -10,12 +10,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping(path = "/Autorisations")
 public class AutorisationController {
     @Autowired
     private IAutorisationService autorisationService;
 
-    @GetMapping
+    @GetMapping("/paged")
     public Page<Autorisation> getAutorisations(Pageable page){
         long start = System.currentTimeMillis();
         Page autorisations = autorisationService.getAutorisations(page);
@@ -24,7 +25,7 @@ public class AutorisationController {
         return autorisations;
     }
 
-    @GetMapping("/paged")
+    @GetMapping
     public List<Autorisation> getAutorisations(){
         long start = System.currentTimeMillis();
         List autorisations = autorisationService.getAutorisations();
@@ -57,7 +58,7 @@ public class AutorisationController {
     @PutMapping
     public Autorisation updateAutorisation(@RequestBody final Autorisation autorisation){ return autorisationService.updateAutorisation(autorisation); }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public void deleteAutorisation(@PathVariable long id){ autorisationService.deleteAutorisation(id); }
 
 }
