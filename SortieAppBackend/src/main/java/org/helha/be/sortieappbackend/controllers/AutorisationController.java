@@ -58,7 +58,7 @@ public class AutorisationController {
     @PutMapping
     public Autorisation updateAutorisation(@RequestBody final Autorisation autorisation){ return autorisationService.updateAutorisation(autorisation); }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public void deleteAutorisation(@PathVariable long id){ autorisationService.deleteAutorisation(id); }
 
 }
