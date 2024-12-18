@@ -315,11 +315,24 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
         itemBuilder: (context, index) {
           final autorisation = autorisations[index];
 
+          // Fonction pour formater la date et l'heure
+          String formatDateTime(String? dateTime) {
+            if (dateTime == null || dateTime.isEmpty) {
+              return 'N/A';
+            }
+            try {
+              final date = DateTime.parse(dateTime);
+              return '${date.toLocal().toString().split(' ')[0]} at ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+            } catch (e) {
+              return 'Invalid date';
+            }
+          }
+
           return ListTile(
             title: Text('${autorisation['type']}'),
             subtitle: Text('${autorisation['note'] ?? 'No Note'}\n'
-                'Start: ${autorisation['date_debut'] ?? 'N/A'}\n'
-                'End: ${autorisation['date_fin'] ?? 'N/A'}'),
+                'Start: ${formatDateTime(autorisation['date_debut'])}\n'
+                'End: ${formatDateTime(autorisation['date_fin'])}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
