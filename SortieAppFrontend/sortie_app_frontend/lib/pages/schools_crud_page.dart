@@ -12,19 +12,19 @@ class SchoolsCrud extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Schools Management'),
-          backgroundColor: Color(0xFF87CEEB),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () async {
-                redirectHome();
-              },
-            ),
-          ],
-        ),
-        body: SchoolListScreen(),
+      appBar: AppBar(
+        title: const Text('Schools Management'),
+        backgroundColor: const Color(0xFF87CEEB),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              redirectHome();
+            },
+          ),
+        ],
+      ),
+      body: const SchoolListScreen(),
     );
   }
 }
@@ -71,14 +71,33 @@ class _SchoolListScreenState extends State<SchoolListScreen> {
     }
   }
 
-  Future<void> addSchool(String name_school, String address_school) async {
+  Future<void> addSchool(String nameSchool, String addressSchool) async {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'name_school': name_school,
-          'address_school': address_school,
+          'name_school': nameSchool,
+          'address_school': addressSchool,
+        }),
+      );
+      if (response.statusCode == 200) {
+        fetchSchools();
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> updateSchool(
+      int idSchool, String nameSchool, String addressSchool) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$apiUrl/$idSchool'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name_school': nameSchool,
+          'address_school': addressSchool,
         }),
       );
       if (response.statusCode == 200) {
@@ -141,12 +160,59 @@ class _SchoolListScreenState extends State<SchoolListScreen> {
     );
   }
 
+  void showEditSchoolDialog(
+      int idSchool, String currentName, String currentAddress) async {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController addressController = TextEditingController();
+
+    nameController.text = currentName;
+    addressController.text = currentAddress;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit School'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration:
+                const InputDecoration(hintText: 'Enter school name'),
+              ),
+              TextField(
+                controller: addressController,
+                decoration:
+                const InputDecoration(hintText: 'Enter school address'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                updateSchool(
+                  idSchool,
+                  nameController.text,
+                  addressController.text,
+                );
+                Navigator.pop(context);
+              },
+              child: const Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('School Management'),
-      ),
       body: ListView.builder(
         itemCount: schools.length,
         itemBuilder: (context, index) {
@@ -155,9 +221,22 @@ class _SchoolListScreenState extends State<SchoolListScreen> {
           return ListTile(
             title: Text(school['name_school']),
             subtitle: Text(school['address_school']),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => deleteSchool(school['id_school']),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => showEditSchoolDialog(
+                    school['id_school'],
+                    school['name_school'],
+                    school['address_school'],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => deleteSchool(school['id_school']),
+                ),
+              ],
             ),
           );
         },

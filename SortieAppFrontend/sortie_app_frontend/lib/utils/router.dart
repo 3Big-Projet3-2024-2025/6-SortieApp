@@ -21,6 +21,9 @@ Future<void> redirectHome() async {
           case "ROLE_LOCAL_ADMIN":
             Get.offNamed('/localAdminHome');
             break;
+          case "ROLE_RESPONSIBLE":
+            Get.offNamed('/responsibleHome');
+            break;
           case "ROLE_SUPERVISOR":
             Get.offNamed('/supervisorHome');
             break;
