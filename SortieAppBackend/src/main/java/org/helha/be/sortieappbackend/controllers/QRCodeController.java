@@ -2,18 +2,14 @@ package org.helha.be.sortieappbackend.controllers;
 
 import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
 import org.helha.be.sortieappbackend.models.Autorisation;
-import org.helha.be.sortieappbackend.repositories.jpa.AutorisationRepository;
 import org.helha.be.sortieappbackend.services.IAutorisationService;
-import org.helha.be.sortieappbackend.services.QRCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/qrcodes")
@@ -22,6 +18,7 @@ public class QRCodeController {
 
     @Autowired
     private QRCodeServiceImpl qrCodeServiceImpl;
+
 
     @Autowired
     private IAutorisationService autorisationService;
