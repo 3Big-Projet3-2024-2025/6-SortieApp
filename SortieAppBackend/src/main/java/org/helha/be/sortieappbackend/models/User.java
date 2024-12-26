@@ -71,7 +71,7 @@ public class User {
     /**
      * Indicates whether the User account is activated.
      */
-    private boolean isActivated_user;
+    private boolean activated;
 
     private String picture_user;
 
@@ -91,9 +91,9 @@ public class User {
      * @param address_user      the address of the User.
      * @param school_user       the School associated with the User.
      * @param role_user         the Role associated with the User.
-     * @param isActivated_user  whether the User account is activated.
+     * @param activated  whether the User account is activated.
      */
-    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, School school_user, Role role_user, boolean isActivated_user, String picture_user) {
+    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, School school_user, Role role_user, boolean activated, String picture_user) {
         this.id_user = id_user;
         this.lastname_user = lastname_user;
         this.name_user = name_user;
@@ -102,7 +102,7 @@ public class User {
         this.address_user = address_user;
         this.school_user = school_user;
         this.role_user = role_user;
-        this.isActivated_user = isActivated_user;
+        this.activated = activated;
         this.picture_user = picture_user;
     }
 }

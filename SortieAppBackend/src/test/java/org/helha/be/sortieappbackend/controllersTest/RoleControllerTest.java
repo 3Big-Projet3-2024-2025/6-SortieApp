@@ -1,12 +1,8 @@
-/**
- * Unit tests for the RoleController class.
- * This class uses JUnit and Mockito to test the functionality of RoleController,
- * which is responsible for handling HTTP requests related to Role entities.
- */
 package org.helha.be.sortieappbackend.controllersTest;
 
 import org.helha.be.sortieappbackend.controllers.RoleController;
 import org.helha.be.sortieappbackend.models.Role;
+import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.RoleServiceDB;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,115 +14,95 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-/**
- * Unit tests for {@link RoleController}.
- */
-public class RoleControllerTest {
+class RoleControllerTest {
 
-    /**
-     * Mocked service for managing Role entities.
-     */
     @Mock
-    private RoleServiceDB serviceDB;
+    private RoleServiceDB roleService;
 
-    /**
-     * The RoleController instance being tested, with mocked dependencies injected.
-     */
     @InjectMocks
-    private RoleController controller;
+    private RoleController roleController;
 
-    /**
-     * MockMvc instance for simulating HTTP requests to the controller.
-     */
     private MockMvc mockMvc;
 
-    /**
-     * Sets up the test environment by initializing Mockito mocks and configuring MockMvc.
-     */
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(roleController).build();
     }
 
-    /**
-     * Tests the {@link RoleController#getRoles()} method.
-     * Ensures the controller retrieves all roles from the service and returns them in JSON format.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testGetRoles() throws Exception {
-        Role role1 = new Role(1, "Admin Local", null);
-        Role role2 = new Role(2, "Eleve", null);
-        List<Role> roles = Arrays.asList(role1, role2);
+    void testGetRoles() throws Exception {
+        Role role1 = new Role(1, "Admin", Collections.emptyList());
+        Role role2 = new Role(2, "User", Collections.emptyList());
 
-        when(serviceDB.getRoles()).thenReturn(roles);
+        when(roleService.getRoles()).thenReturn(Arrays.asList(role1, role2));
 
         mockMvc.perform(get("/roles"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].name_role").value("Admin Local"))
-                .andExpect(jsonPath("$[1].name_role").value("Eleve"));
+                .andExpect(jsonPath("$[0].id_role").value(1))
+                .andExpect(jsonPath("$[0].name_role").value("Admin"))
+                .andExpect(jsonPath("$[1].id_role").value(2))
+                .andExpect(jsonPath("$[1].name_role").value("User"))
+                .andDo(print());
+
+        verify(roleService, times(1)).getRoles();
     }
 
-    /**
-     * Tests the {@link RoleController#addRole(Role)} method.
-     * Ensures the controller adds a new role by delegating to the service and returns the created role.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testAddRole() throws Exception {
-        Role role = new Role(1, "Admin Local", null);
+    void testAddRole() throws Exception {
+        Role newRole = new Role(0, "Manager", Collections.emptyList());
+        Role savedRole = new Role(3, "Manager", Collections.emptyList());
 
-        when(serviceDB.addRole(any(Role.class))).thenReturn(role);
+        when(roleService.addRole(any(Role.class))).thenReturn(savedRole);
 
         mockMvc.perform(post("/roles")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id_role\":0,\"name_role\":\"Admin Local\"}"))
+                        .content("{\"name_role\":\"Manager\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name_role").value("Admin Local"));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id_role").value(3))
+                .andExpect(jsonPath("$.name_role").value("Manager"))
+                .andDo(print());
+
+        verify(roleService, times(1)).addRole(any(Role.class));
     }
 
-    /**
-     * Tests the {@link RoleController#updateRole(int, Role)} method.
-     * Ensures the controller updates an existing role and returns the updated role.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testUpdateRole() throws Exception {
-        Role updatedRole = new Role(1, "Eleve", null);
+    void testUpdateRole() throws Exception {
+        Role existingRole = new Role(1, "Admin", Collections.emptyList());
+        Role updatedRole = new Role(1, "Super Admin", Collections.emptyList());
 
-        when(serviceDB.updateRole(any(Role.class), eq(1))).thenReturn(updatedRole);
+        when(roleService.updateRole(any(Role.class), eq(1))).thenReturn(updatedRole);
 
         mockMvc.perform(put("/roles/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id_role\":1,\"name_role\":\"Eleve\"}"))
+                        .content("{\"name_role\":\"Super Admin\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name_role").value("Eleve"));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id_role").value(1))
+                .andExpect(jsonPath("$.name_role").value("Super Admin"))
+                .andDo(print());
+
+        verify(roleService, times(1)).updateRole(any(Role.class), eq(1));
     }
 
-    /**
-     * Tests the {@link RoleController#deleteRole(int)} method.
-     * Ensures the controller deletes a role by delegating to the service.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testDeleteRole() throws Exception {
-        doNothing().when(serviceDB).deleteRole(1);
+    void testDeleteRole() throws Exception {
+        doNothing().when(roleService).deleteRole(1);
 
         mockMvc.perform(delete("/roles/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andDo(print());
 
-        verify(serviceDB, times(1)).deleteRole(1);
+        verify(roleService, times(1)).deleteRole(1);
     }
 }
