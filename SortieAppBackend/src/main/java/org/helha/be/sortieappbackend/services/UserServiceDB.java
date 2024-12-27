@@ -87,7 +87,14 @@ public class UserServiceDB implements IUserService {
                         user.setRole_user(role);
                     }
 
-                    user.setPicture_user(newUser.getPicture_user());
+                    if (newUser.getPicture_user() != null) {
+                        user.setPicture_user(newUser.getPicture_user());
+                    }
+
+                    // Y'a un stut ici
+                    if (newUser.getActivated() != null) {
+                        user.setActivated(newUser.getActivated());
+                    }
 
                     return repository.save(user);
                 })
@@ -102,5 +109,12 @@ public class UserServiceDB implements IUserService {
             user.setActivated(false);
             repository.save(user);
         });
+    }
+
+    /**
+     * Deleting physically a user.
+     */
+    public void deleteUserPhysically(int id_user) {
+        repository.deleteById(id_user);
     }
 }

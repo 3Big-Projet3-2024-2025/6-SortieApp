@@ -105,4 +105,18 @@ public class User {
         this.activated = activated;
         this.picture_user = picture_user;
     }
+
+    /**
+     * Method that returns the status of activation.
+     */
+    public Boolean getActivated() {
+        return this.activated;
+    }
+
+    /**
+     * Method that set the status of activation.
+     */
+    public void setActivated(Boolean activated) {
+        this.activated = activated;
+    }
 }

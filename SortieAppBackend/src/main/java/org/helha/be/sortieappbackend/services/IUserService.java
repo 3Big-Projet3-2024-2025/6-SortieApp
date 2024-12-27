@@ -10,4 +10,5 @@ public interface IUserService {
     public User addUser(User user);
     public User updateUser(User user, int id_role);
     public void deleteUser(int id_role);
+    public void deleteUserPhysically(int id_user);
 }

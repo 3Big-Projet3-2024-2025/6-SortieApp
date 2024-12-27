@@ -64,12 +64,22 @@ public class UserController {
     }
 
     /**
-     * Deletes a User from the database by ID.
+     * Deletes logically a User from the database by ID.
      *
      * @param id_user the ID of the {@link User} to delete.
      */
     @DeleteMapping(path = "/{id_user}")
     public void deleteUser(@PathVariable int id_user) {
         serviceDB.deleteUser(id_user);
+    }
+
+    /**
+     * Deletes physically a User from the database by ID.
+     *
+     * @param id_user the ID of the {@link User} to delete.
+     */
+    @DeleteMapping(path="/delete/{id_user}")
+    public void deletePhysically(@PathVariable int id_user) {
+        serviceDB.deleteUserPhysically(id_user);
     }
 }
