@@ -21,7 +21,7 @@ public class User {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id_user;
+    private int id;
 
     /**
      * The last name of the User.
@@ -36,7 +36,7 @@ public class User {
     /**
      * The email address of the User.
      */
-    private String email_user;
+    private String email;
 
     /**
      * The password of the User.
@@ -83,21 +83,21 @@ public class User {
     /**
      * Constructor to initialize a User object with specific values.
      *
-     * @param id_user           the unique identifier of the User.
+     * @param id           the unique identifier of the User.
      * @param lastname_user     the last name of the User.
      * @param name_user         the first name of the User.
-     * @param email_user        the email address of the User.
+     * @param email        the email address of the User.
      * @param password_user     the password of the User.
      * @param address_user      the address of the User.
      * @param school_user       the School associated with the User.
      * @param role_user         the Role associated with the User.
      * @param activated  whether the User account is activated.
      */
-    public User(int id_user, String lastname_user, String name_user, String email_user, String password_user, String address_user, School school_user, Role role_user, boolean activated, String picture_user) {
-        this.id_user = id_user;
+    public User(int id, String lastname_user, String name_user, String email, String password_user, String address_user, School school_user, Role role_user, boolean activated, String picture_user) {
+        this.id = id;
         this.lastname_user = lastname_user;
         this.name_user = name_user;
-        this.email_user = email_user;
+        this.email = email;
         this.password_user = password_user;
         this.address_user = address_user;
         this.school_user = school_user;

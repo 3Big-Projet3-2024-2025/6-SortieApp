@@ -25,6 +25,11 @@ public class UserController {
     @Autowired
     UserServiceDB serviceDB;
 
+    @GetMapping(path="/getAllUsers")
+    public List<User> getAllUsers() {
+        return serviceDB.getAllUsers();
+    }
+
     /**
      * Retrieves a list of all users.
      *

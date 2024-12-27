@@ -28,6 +28,13 @@ public class UserServiceDB implements IUserService {
     private SchoolServiceDB schoolServiceDB;
 
     /**
+     * Retrieve all users from the database.
+     */
+    public List<User> getAllUsers() {
+        return repository.findAll();
+    }
+
+    /**
      * Retrieve all activated users from the database.
      */
     public List<User> getUsers() {
@@ -61,7 +68,7 @@ public class UserServiceDB implements IUserService {
                 .map(user -> {
                     user.setName_user(newUser.getName_user());
                     user.setLastname_user(newUser.getLastname_user());
-                    user.setEmail_user(newUser.getEmail_user());
+                    user.setEmail(newUser.getEmail());
                     user.setAddress_user(newUser.getAddress_user());
 
                     if (newUser.getPassword_user() != null) {

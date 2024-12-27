@@ -93,7 +93,7 @@ class UserServiceDBTest {
         var result = userService.addUser(user);
 
         assertNotNull(result);
-        assertEquals(1, result.getId_user());
+        assertEquals(1, result.getId());
         assertEquals("John", result.getName_user());
         assertEquals("Admin", result.getRole_user().getName_role());
 
@@ -119,7 +119,7 @@ class UserServiceDBTest {
 
         assertNotNull(result);
         assertEquals("Johnny", result.getName_user());
-        assertEquals("johnny.doe@example.com", result.getEmail_user());
+        assertEquals("johnny.doe@example.com", result.getEmail());
         assertEquals("Admin", result.getRole_user().getName_role());
 
         verify(userRepository, times(1)).findById(1);
