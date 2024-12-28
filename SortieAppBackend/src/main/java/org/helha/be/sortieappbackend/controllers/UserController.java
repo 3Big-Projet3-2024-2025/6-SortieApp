@@ -7,6 +7,7 @@ package org.helha.be.sortieappbackend.controllers;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +27,9 @@ public class UserController {
 
     @Autowired
     UserServiceDB serviceDB;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping(path="/getAllUsers")
     public List<User> getAllUsers() {
