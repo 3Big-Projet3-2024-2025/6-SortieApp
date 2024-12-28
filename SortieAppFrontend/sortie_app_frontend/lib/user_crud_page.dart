@@ -410,7 +410,25 @@ class _UserListScreenState extends State<UserListScreen> {
           final email = user['email'] ?? 'No Email';
           final isActive = user['activated'] == true;
 
+          final String? base64Image = user['picture_user'];
+          Uint8List? imageBytes = (base64Image != null && base64Image.trim().isNotEmpty)
+              ? base64Decode(base64Image)
+              : null;
+
           return ListTile(
+            leading: imageBytes != null
+                ? Image.memory(
+              imageBytes,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+            )
+                : Image.asset(
+              'assets/images/default_profile.jpg',
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+            ),
             title: Text('${user['name_user']} ${user['lastname_user']}'),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

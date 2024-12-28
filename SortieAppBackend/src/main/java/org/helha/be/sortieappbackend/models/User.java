@@ -73,6 +73,7 @@ public class User {
      */
     private boolean activated;
 
+    @Column(columnDefinition = "LONGTEXT")
     private String picture_user;
 
     /**

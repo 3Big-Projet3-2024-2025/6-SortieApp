@@ -8,8 +8,10 @@ import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for handling User-related HTTP requests.
