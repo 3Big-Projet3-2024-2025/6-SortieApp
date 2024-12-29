@@ -13,11 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * REST controller for handling User-related HTTP requests.
@@ -95,6 +93,21 @@ public class UserController {
     public void deletePhysically(@PathVariable int id_user) {
         serviceDB.deleteUserPhysically(id_user);
     }
+
+    /**
+     * Endpoint to retrieve the profile information of the currently connected user.
+     *
+     * This endpoint extracts the user ID from the provided JWT token in the Authorization header.
+     * If the token is missing, invalid, or if the user cannot be found, appropriate error responses
+     * are returned.
+     *
+     * @param authHeader the Authorization header containing the JWT token in the format "Bearer <token>".
+     * @return a {@link ResponseEntity} containing the user profile information if the token is valid,
+     *         or an error message with the appropriate HTTP status code otherwise.
+     *         - {@code 403 Forbidden}: if the Authorization header is missing.
+     *         - {@code 401 Unauthorized}: if the token is invalid.
+     *         - {@code 404 Not Found}: if the user does not exist.
+     */
     @GetMapping(path = "/profile")
     public ResponseEntity<?> getProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || authHeader.isEmpty()) {

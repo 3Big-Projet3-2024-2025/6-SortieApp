@@ -73,10 +73,12 @@ public class UserServiceDB implements IUserService {
 
         user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
 
+        /*
         // Validate Base64 image if provided
         if (user.getPicture_user() != null && !user.getPicture_user().isEmpty()) {
             convertImageToBase64(user.getPicture_user());
         }
+         */
 
         return repository.save(user);
     }
@@ -117,12 +119,6 @@ public class UserServiceDB implements IUserService {
                         user.setActivated(newUser.getActivated());
                     }
 
-                    // Validate and update Base64 image
-                    if (newUser.getPicture_user() != null && !newUser.getPicture_user().isEmpty()) {
-                        convertImageToBase64(newUser.getPicture_user());
-                        user.setPicture_user(newUser.getPicture_user());
-                    }
-
                     return repository.save(user);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -143,45 +139,5 @@ public class UserServiceDB implements IUserService {
      */
     public void deleteUserPhysically(int id_user) {
         repository.deleteById(id_user);
-    }
-
-
-    /**
-     * Validate, resize, and encode the image to Base64 format.
-     *
-     * @param base64Image the Base64-encoded image string
-     * @return the compressed and validated Base64 image string
-     */
-    public String convertImageToBase64(String base64Image) {
-        try {
-            // Decode the Base64 string to get the binary data
-            byte[] decodedBytes = Base64.getDecoder().decode(base64Image);
-
-            if (decodedBytes.length == 0) {
-                throw new IllegalArgumentException("Image Base64 is empty");
-            }
-
-            // Convert binary data to a BufferedImage
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedBytes);
-            BufferedImage originalImage = ImageIO.read(inputStream);
-
-            if (originalImage == null) {
-                throw new IllegalArgumentException("Invalid Base64 image provided");
-            }
-
-            // Resize the image to 400x400 pixels while maintaining aspect ratio
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            Thumbnails.of(originalImage)
-                    .size(400, 400) // Resize to 400x400 pixels
-                    .outputQuality(0.85) // Set image quality to 85%
-                    .toOutputStream(outputStream);
-
-            // Convert resized image back to Base64
-            byte[] resizedBytes = outputStream.toByteArray();
-            return Base64.getEncoder().encodeToString(resizedBytes);
-
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Error processing Base64 image", e);
-        }
     }
 }

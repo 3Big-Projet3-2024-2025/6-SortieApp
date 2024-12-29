@@ -20,8 +20,21 @@ class homePage extends StatelessWidget {
           ),
         ],
       ),
-      body: const Center(
-        child: Text('Welcome to the Home Page!'),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Center(
+            child: Text('Welcome to the Home Page!'),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.person),
+            label: const Text('My Profile'),
+            onPressed: () {
+              Get.toNamed('/myProfile');
+            },
+          ),
+        ],
       ),
     );
   }

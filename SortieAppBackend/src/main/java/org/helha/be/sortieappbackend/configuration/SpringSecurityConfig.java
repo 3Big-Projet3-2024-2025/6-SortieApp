@@ -31,7 +31,7 @@ public class SpringSecurityConfig {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> {
                     authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**").hasAnyAuthority("ROLE_ADMIN");
-                    authorizeRequests.requestMatchers("/swagger-ui/**","/v3/api-docs","/users","users/all","auth/login","roles", "schools").permitAll();
+                    authorizeRequests.requestMatchers("/swagger-ui/**","/v3/api-docs","/users","users/**","auth/login","roles", "schools").permitAll();
                     authorizeRequests.anyRequest().authenticated();
                 }).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
