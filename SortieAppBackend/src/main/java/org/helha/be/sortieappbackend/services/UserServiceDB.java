@@ -9,6 +9,8 @@ import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import net.coobird.thumbnailator.Thumbnails;
@@ -34,6 +36,9 @@ public class UserServiceDB implements IUserService {
 
     @Autowired
     private SchoolServiceDB schoolServiceDB;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Retrieve all users from the database.
@@ -66,6 +71,8 @@ public class UserServiceDB implements IUserService {
             user.setRole_user(role);
         }
 
+        user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
+
         // Validate Base64 image if provided
         if (user.getPicture_user() != null && !user.getPicture_user().isEmpty()) {
             convertImageToBase64(user.getPicture_user());
@@ -86,7 +93,7 @@ public class UserServiceDB implements IUserService {
                     user.setAddress_user(newUser.getAddress_user());
 
                     if (newUser.getPassword_user() != null) {
-                        user.setPassword_user(newUser.getPassword_user());
+                        user.setPassword_user(passwordEncoder.encode(newUser.getPassword_user()));
                     }
 
                     if (newUser.getSchool_user() != null && newUser.getSchool_user().getId_school() != 0) {

@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+/*
 void main() {
   runApp(const UserApp());
 }
+ */
 
 class UserApp extends StatelessWidget {
   const UserApp({super.key});
