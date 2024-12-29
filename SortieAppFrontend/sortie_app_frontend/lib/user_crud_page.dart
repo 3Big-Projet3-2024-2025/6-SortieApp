@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
+
 
 void main() {
   runApp(const UserApp());
@@ -102,6 +104,69 @@ class _UserListScreenState extends State<UserListScreen> {
       }
     } catch (e) {
       print('Error: $e');
+    }
+  }
+
+  // Import CSV Method
+  void showImportCSVDialog(BuildContext context) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
+
+    if (result != null) {
+      Uint8List? fileBytes = result.files.single.bytes;
+      String fileName = result.files.single.name;
+
+      try {
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('${getBackendUrl()}/users/import'),
+        );
+
+        if (fileBytes != null) {
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              fileBytes,
+              filename: fileName,
+            ),
+          );
+        }
+
+        var response = await request.send();
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('CSV imported successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          fetchUsers();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to import CSV.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No file selected.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -471,10 +536,15 @@ class _UserListScreenState extends State<UserListScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton(
+            onPressed: () => showImportCSVDialog(context),
+            child: const Icon(Icons.upload_file),
+          ),
+          const SizedBox(width: 15),  // Ajout d'un espace entre les boutons
+          FloatingActionButton(
             onPressed: showAddUserDialog,
             child: const Icon(Icons.add),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 15),  // Espace entre ajouter et voir les users
           FloatingActionButton(
             onPressed: toggleUserView,
             child: Text(

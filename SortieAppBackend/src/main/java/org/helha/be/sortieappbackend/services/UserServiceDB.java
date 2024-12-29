@@ -3,6 +3,7 @@
  */
 package org.helha.be.sortieappbackend.services;
 
+import com.opencsv.CSVReader;
 import org.helha.be.sortieappbackend.models.Role;
 import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
@@ -13,11 +14,13 @@ import org.springframework.stereotype.Service;
 
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -60,19 +63,24 @@ public class UserServiceDB implements IUserService {
      * Add a new user to the database.
      */
     public User addUser(User user) {
-        if (user.getRole_user() != null && user.getRole_user().getId_role() != 0) {
-            Role role = roleServiceDB.getRoleById(user.getRole_user().getId_role())
-                    .orElseThrow(() -> new IllegalArgumentException("Role not found"));
-            user.setRole_user(role);
-        }
-/*
-        // Validate Base64 image if provided
-        if (user.getPicture_user() != null && !user.getPicture_user().isEmpty()) {
-            convertImageToBase64(user.getPicture_user());
-        }
-*/
+        // Forcer le rôle à "STUDENT" indépendamment de ce qui est envoyé
+        Role roleStudent = roleServiceDB.getRoleByName("STUDENT")
+                .orElseThrow(() -> new IllegalArgumentException("Role STUDENT not found"));
+
+        // Associer le rôle "STUDENT" à l'utilisateur
+        user.setRole_user(roleStudent);
+
+        // Valider et convertir l'image si nécessaire (désactivé pour l'instant)
+    /*
+    if (user.getPicture_user() != null && !user.getPicture_user().isEmpty()) {
+        convertImageToBase64(user.getPicture_user());
+    }
+    */
+
+        // Sauvegarder l'utilisateur
         return repository.save(user);
     }
+
 
     /**
      * Update an existing user.
@@ -177,4 +185,65 @@ public class UserServiceDB implements IUserService {
             throw new IllegalArgumentException("Error processing Base64 image", e);
         }
     }
+
+    public void importUsersFromCSV(MultipartFile file) {
+        try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
+            String[] header = reader.readNext(); // Lire l'en-tête
+
+            // Vérification des colonnes du fichier CSV (sans activated)
+            if (header == null || header.length != 6 ||
+                    !"lastname_user".equals(header[0]) ||
+                    !"name_user".equals(header[1]) ||
+                    !"address_user".equals(header[2]) ||
+                    !"email".equals(header[3]) ||
+                    !"school_id".equals(header[4]) ||
+                    !"picture_user".equals(header[5])) {
+
+                throw new IllegalArgumentException("CSV file has incorrect column headers or order.");
+            }
+
+            String[] nextLine;
+
+            while ((nextLine = reader.readNext()) != null) {
+                // Extraction des données (sans activated)
+                String lastname = nextLine[0];
+                String firstname = nextLine[1];
+                String address = nextLine[2];
+                String email = nextLine[3];
+                int schoolId = Integer.parseInt(nextLine[4]);
+                String pictureUrl = nextLine[5];
+
+                // Rôle par défaut (STUDENT)
+                Role defaultRole = roleServiceDB.getRoleByName("STUDENT")
+                        .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
+
+                // Recherche de l'école par ID
+                School school = schoolServiceDB.getSchoolById(schoolId)
+                        .orElseThrow(() -> new RuntimeException("School not found with ID: " + schoolId));
+
+                // Création d'un nouvel utilisateur
+                User user = new User();
+                user.setLastname_user(lastname);
+                user.setName_user(firstname);
+                user.setEmail(email);
+                user.setAddress_user(address);
+                user.setSchool_user(school);
+                user.setRole_user(defaultRole);
+                user.setActivated(false);  // Activated est false par défaut
+
+                // Si pictureUrl est vide ou null, ne pas l'assigner
+                if (pictureUrl != null && !pictureUrl.isEmpty()) {
+                    user.setPicture_user(pictureUrl);
+                }
+
+                // Enregistrement dans la base de données
+                repository.save(user);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error importing users from CSV", e);
+        }
+    }
+
+
+
 }

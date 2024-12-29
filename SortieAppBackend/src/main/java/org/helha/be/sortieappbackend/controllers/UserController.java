@@ -7,6 +7,8 @@ package org.helha.be.sortieappbackend.controllers;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -84,4 +86,15 @@ public class UserController {
     public void deletePhysically(@PathVariable int id_user) {
         serviceDB.deleteUserPhysically(id_user);
     }
+
+    @PostMapping("/import")
+    public ResponseEntity<String> importUsersFromCSV(@RequestParam("file") MultipartFile file) {
+        try {
+            serviceDB.importUsersFromCSV(file);
+            return ResponseEntity.ok("Users imported successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to import users: " + e.getMessage());
+        }
+    }
+
 }
