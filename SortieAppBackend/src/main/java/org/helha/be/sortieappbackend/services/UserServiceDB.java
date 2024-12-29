@@ -65,12 +65,12 @@ public class UserServiceDB implements IUserService {
                     .orElseThrow(() -> new IllegalArgumentException("Role not found"));
             user.setRole_user(role);
         }
-
+/*
         // Validate Base64 image if provided
         if (user.getPicture_user() != null && !user.getPicture_user().isEmpty()) {
             convertImageToBase64(user.getPicture_user());
         }
-
+*/
         return repository.save(user);
     }
 
