@@ -4,12 +4,17 @@
  */
 package org.helha.be.sortieappbackend.controllers;
 
+import io.jsonwebtoken.JwtException;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
+import org.helha.be.sortieappbackend.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +35,8 @@ public class UserController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JWTUtils jwtUtils;
 
     @GetMapping(path="/getAllUsers")
     public List<User> getAllUsers() {
@@ -88,4 +95,24 @@ public class UserController {
     public void deletePhysically(@PathVariable int id_user) {
         serviceDB.deleteUserPhysically(id_user);
     }
+    @GetMapping(path = "/profile")
+    public ResponseEntity<?> getProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || authHeader.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Authorization header is missing");
+        }
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        try {
+            int userId = jwtUtils.getUserIdFromToken(token);
+            User user = serviceDB.getUserById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            if (user != null) {
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+    }
+
 }
