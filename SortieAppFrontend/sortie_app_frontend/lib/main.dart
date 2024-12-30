@@ -18,7 +18,7 @@ class SortieApp extends StatelessWidget {
       getPages: [
         GetPage(name: '/login', page: () => loginPage()),
         GetPage(name: '/home', page: () => homePage()),
-        GetPage(name: '/myProfile', page: () => MyProfile()), // Ajout de la route MyProfile
+        GetPage(name: '/myProfile', page: () => MyProfile()),
       ],
     );
   }

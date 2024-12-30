@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:sortie_app_frontend/utils/tokenUtils.dart';
 
@@ -57,6 +58,48 @@ class _MyProfileState extends State<MyProfile> {
     }
   }
 
+  Future<void> _pickImageAndUpload() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      try {
+        final Uint8List imageBytes = await image.readAsBytes();
+        final String base64Image = base64Encode(imageBytes);
+
+        await _updateProfilePicture(base64Image);
+      } catch (e) {
+        print('Error picking or uploading image: $e');
+      }
+    }
+  }
+
+  Future<void> _updateProfilePicture(String base64Image) async {
+    final String url = 'http://10.0.2.2:8081/users/updateProfilePicture';
+    final String? accessToken = await getAccesToken();
+
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'picture_user': base64Image}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          userData!['picture_user'] = base64Image;
+        });
+      } else {
+        throw Exception('Failed to update profile picture: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error updating profile picture: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,9 +115,56 @@ class _MyProfileState extends State<MyProfile> {
         child: ListView(
           children: [
             Center(
-              child: CircleAvatar(
-                radius: 60,
-                backgroundImage: _getProfileImage(),
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 80,
+                    backgroundImage: _getProfileImage(),
+                  ),
+                  Positioned(
+                    bottom: 5,
+                    right: 5,
+                    child: GestureDetector(
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text("Update Profile Picture"),
+                            content: const Text("Choose an image from your gallery."),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  await _pickImageAndUpload();
+                                },
+                                child: const Text("Choose Image"),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      child: Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),

@@ -15,9 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for handling User-related HTTP requests.
@@ -130,6 +132,14 @@ public class UserController {
         }
     }
 
+
+    /**
+     * Handles HTTP POST requests to import users from a CSV file.
+     *
+     * @param file the CSV file containing user data, uploaded as a multipart file.
+     * @return a {@link ResponseEntity} containing a success message if the import
+     *         is successful, or an error message if the import fails.
+     */
     @PostMapping("/import")
     public ResponseEntity<String> importUsersFromCSV(@RequestParam("file") MultipartFile file) {
         try {
@@ -137,6 +147,48 @@ public class UserController {
             return ResponseEntity.ok("Users imported successfully.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to import users: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Updates the profile picture of the currently connected user.
+     *
+     * @param authHeader   the Authorization header containing the JWT token.
+     * @param payload      a JSON payload containing the new profile picture in Base64 format.
+     * @return a {@link ResponseEntity} indicating the success or failure of the operation.
+     */
+    @PutMapping(path = "/updateProfilePicture")
+    public ResponseEntity<?> updateProfilePicture(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody Map<String, String> payload) {
+
+        // Check if Authorization header is present
+        if (authHeader == null || authHeader.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Authorization header is missing");
+        }
+
+        // Extract the token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+        try {
+            // Get the user ID from the token
+            int userId = jwtUtils.getUserIdFromToken(token);
+
+            // Extract the Base64 image from the request payload
+            String base64Image = payload.get("picture_user");
+            if (base64Image == null || base64Image.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Picture data is missing");
+            }
+
+            // Update the profile picture using the service
+            serviceDB.updateProfilePicture(userId, base64Image);
+
+            return ResponseEntity.ok("Profile picture updated successfully");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        } catch (Exception e) {
+            e.printStackTrace(); //debug
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating profile picture: " + e.getMessage());
         }
     }
 
