@@ -15,7 +15,7 @@ class SortieApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SortieApp',
-      initialRoute: '/school',
+      initialRoute: '/login',
       getPages: [
         GetPage(name: '/login', page: () => loginPage()),
         GetPage(name: '/home', page: () => homePage()),

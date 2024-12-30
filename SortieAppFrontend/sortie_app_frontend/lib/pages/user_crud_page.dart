@@ -5,11 +5,9 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 
 
-/*
 void main() {
   runApp(const UserApp());
 }
- */
 
 class UserApp extends StatelessWidget {
   const UserApp({super.key});
@@ -48,6 +46,10 @@ class _UserListScreenState extends State<UserListScreen> {
   List users = [];
   List roles = [];
 
+  // For search tab
+  List filteredUsers = [];
+  String searchQuery = "";
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +65,7 @@ class _UserListScreenState extends State<UserListScreen> {
       if (response.statusCode == 200) {
         setState(() {
           users = json.decode(response.body);
+          filteredUsers = users;
         });
       } else {
         throw Exception('Failed to load users');
@@ -70,6 +73,18 @@ class _UserListScreenState extends State<UserListScreen> {
     } catch (e) {
       print('Error: $e');
     }
+  }
+
+  void filterUsers(String query) {
+    setState(() {
+      searchQuery = query.toLowerCase();
+      filteredUsers = users.where((user) {
+        final name = user['name_user']?.toLowerCase() ?? '';
+        final lastname = user['lastname_user']?.toLowerCase() ?? '';
+        final email = user['email']?.toLowerCase() ?? '';
+        return name.contains(searchQuery) || lastname.contains(searchQuery) || email.contains(searchQuery);
+      }).toList();
+    });
   }
 
   Future<void> fetchRoles() async {
@@ -466,11 +481,42 @@ class _UserListScreenState extends State<UserListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Management'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (query) {
+                setState(() {
+                  searchQuery = query.toLowerCase();
+                  filteredUsers = users.where((user) {
+                    final name = user['name_user']?.toLowerCase() ?? '';
+                    final lastname = user['lastname_user']?.toLowerCase() ?? '';
+                    final email = user['email']?.toLowerCase() ?? '';
+                    return name.contains(searchQuery) ||
+                        lastname.contains(searchQuery) ||
+                        email.contains(searchQuery);
+                  }).toList();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ),
+        ),
       ),
       body: ListView.builder(
-        itemCount: users.length,
+        itemCount: filteredUsers.length,
         itemBuilder: (context, index) {
-          final user = users[index];
+          final user = filteredUsers[index];
 
           final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
           final address = user['address_user'] ?? 'No Address';
@@ -483,18 +529,49 @@ class _UserListScreenState extends State<UserListScreen> {
               : null;
 
           return ListTile(
-            leading: imageBytes != null
-                ? Image.memory(
-              imageBytes,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-            )
-                : Image.asset(
-              'assets/images/default_profile.jpg',
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
+            leading: GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Dialog(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          imageBytes != null
+                              ? Image.memory(
+                            imageBytes,
+                            fit: BoxFit.cover,
+                          )
+                              : Image.asset(
+                            'assets/images/default_profile.jpg',
+                            fit: BoxFit.cover,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              child: imageBytes != null
+                  ? Image.memory(
+                imageBytes,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              )
+                  : Image.asset(
+                'assets/images/default_profile.jpg',
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              ),
             ),
             title: Text('${user['name_user']} ${user['lastname_user']}'),
             subtitle: Column(
@@ -541,12 +618,12 @@ class _UserListScreenState extends State<UserListScreen> {
             onPressed: () => showImportCSVDialog(context),
             child: const Icon(Icons.upload_file),
           ),
-          const SizedBox(width: 15),  // Ajout d'un espace entre les boutons
+          const SizedBox(width: 15),
           FloatingActionButton(
             onPressed: showAddUserDialog,
             child: const Icon(Icons.add),
           ),
-          const SizedBox(width: 15),  // Espace entre ajouter et voir les users
+          const SizedBox(width: 15),
           FloatingActionButton(
             onPressed: toggleUserView,
             child: Text(

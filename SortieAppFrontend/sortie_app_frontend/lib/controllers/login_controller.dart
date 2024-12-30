@@ -23,6 +23,7 @@ class LoginController extends GetxController {
 
 
     final uri = Uri.parse('http://10.0.2.2:8081/auth/login');
+    //final uri = Uri.parse('http://localhost:8081/auth/login');
 
     final request = http.MultipartRequest('POST', uri);
     request.fields['email'] = email.value;
