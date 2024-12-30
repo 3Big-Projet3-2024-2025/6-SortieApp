@@ -2,8 +2,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:get/get.dart';
-import '../utils/router.dart';
-import 'package:flutter/foundation.dart';
 
 
 class LoginController extends GetxController {

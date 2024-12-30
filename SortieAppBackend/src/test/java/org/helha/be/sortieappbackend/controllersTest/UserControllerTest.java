@@ -1,13 +1,7 @@
-/**
- * Unit tests for the UserController class.
- * This class uses JUnit and Mockito to test the functionality of UserController,
- * which is responsible for handling HTTP requests related to User entities.
- */
 package org.helha.be.sortieappbackend.controllersTest;
 
 import org.helha.be.sortieappbackend.controllers.UserController;
 import org.helha.be.sortieappbackend.models.Role;
-import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,142 +13,96 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-/**
- * Unit tests for {@link UserController}.
- */
-public class UserControllerTest {
+class UserControllerTest {
 
-    /**
-     * Mocked service for managing User entities.
-     */
     @Mock
-    private UserServiceDB serviceDB;
+    private UserServiceDB userService;
 
-    /**
-     * The UserController instance being tested, with mocked dependencies injected.
-     */
     @InjectMocks
-    private UserController controller;
+    private UserController userController;
 
-    /**
-     * MockMvc instance for simulating HTTP requests to the controller.
-     */
     private MockMvc mockMvc;
 
-    /**
-     * Sets up the test environment by initializing Mockito mocks and configuring MockMvc.
-     */
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
     }
 
-    /**
-     * Tests the {@link UserController#getUsers()} method.
-     * Ensures the controller retrieves all users from the service and returns them in JSON format.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testGetUsers() throws Exception {
-        Role role = new Role(1, "Admin Local", null);
-        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
-        User user1 = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly",school, role, true, "picture_user");
-        school.getUsers_school().add(user1);
-        User user2 = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies",school, role, false, "picture_user");
-        school.getUsers_school().add(user2);
-        List<User> users = Arrays.asList(user1, user2);
+    void testGetUsers() throws Exception {
+        User user1 = new User(1, "Doe", "John", "john.doe@example.com", "password123", "123 Street", null, null, true, null);
+        User user2 = new User(2, "Smith", "Jane", "jane.smith@example.com", "password456", "456 Avenue", null, null, true, null);
 
-        when(serviceDB.getUsers()).thenReturn(users);
+        when(userService.getUsers()).thenReturn(Arrays.asList(user1, user2));
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].name_user").value("Huseyin"))
-                .andExpect(jsonPath("$[1].name_user").value("Noah"));
+                .andExpect(jsonPath("$[0].id_user").value(1))
+                .andExpect(jsonPath("$[0].name_user").value("John"))
+                .andExpect(jsonPath("$[1].id_user").value(2))
+                .andExpect(jsonPath("$[1].name_user").value("Jane"))
+                .andDo(print());
+
+        verify(userService, times(1)).getUsers();
     }
 
-    /**
-     * Tests the {@link UserController#addUser(User)} method.
-     * Ensures the controller adds a new user by delegating to the service and returns the created user.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testAddUser() throws Exception {
-        Role role = new Role(1, "Admin Local", null);
-        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
-        User user = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly",school, role, true, "picture_user");
-        school.getUsers_school().add(user);
+    void testAddUser() throws Exception {
+        User newUser = new User(0, "Doe", "John", "john.doe@example.com", "password123", "123 Street", null, null, true, null);
+        User savedUser = new User(1, "Doe", "John", "john.doe@example.com", "password123", "123 Street", null, null, true, null);
 
-        when(serviceDB.addUser(any(User.class))).thenReturn(user);
+        when(userService.addUser(any(User.class))).thenReturn(savedUser);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{" +
-                                "\"id_user\":0," +
-                                "\"lastname_user\":\"Ozudogru\"," +
-                                "\"name_user\":\"Huseyin\"," +
-                                "\"email_user\":\"hozu@helha.be\"," +
-                                "\"password_user\":\"password123\"," +
-                                "\"address_user\":\"Rue Lison 214, 6060 Gilly\"," +
-                                "\"role_user\":{\"id_role\":1}," +
-                                "\"isActivated_user\":true}"))
+                        .content("{\"lastname_user\":\"Doe\",\"name_user\":\"John\",\"email_user\":\"john.doe@example.com\",\"password_user\":\"password123\",\"address_user\":\"123 Street\",\"activated\":true}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name_user").value("Huseyin"));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id_user").value(1))
+                .andExpect(jsonPath("$.name_user").value("John"))
+                .andDo(print());
+
+        verify(userService, times(1)).addUser(any(User.class));
     }
 
-    /**
-     * Tests the {@link UserController#updateUser(int, User)} method.
-     * Ensures the controller updates an existing user and returns the updated user.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testUpdateUser() throws Exception {
-        Role role = new Role(1, "Admin Local", null);
-        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
-        User updatedUser = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies",school, role, false, "picture_user");
+    void testUpdateUser() throws Exception {
+        User existingUser = new User(1, "Doe", "John", "john.doe@example.com", "password123", "123 Street", null, null, true, null);
+        User updatedUser = new User(1, "Doe", "Johnny", "johnny.doe@example.com", "password123", "123 Street", null, null, true, null);
 
-        when(serviceDB.updateUser(any(User.class), eq(1))).thenReturn(updatedUser);
+        when(userService.updateUser(any(User.class), eq(1))).thenReturn(updatedUser);
 
         mockMvc.perform(put("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{" +
-                                "\"id_user\":1," +
-                                "\"lastname_user\":\"Gallet\"," +
-                                "\"name_user\":\"Noah\"," +
-                                "\"email_user\":\"ngal@helha.be\"," +
-                                "\"password_user\":\"password456\"," +
-                                "\"address_user\":\"Rue Trieu Kaisin 136, 6061 Montignies\"," +
-                                "\"role_user\":{\"id_role\":1}," +
-                                "\"isActivated_user\":false}"))
+                        .content("{\"lastname_user\":\"Doe\",\"name_user\":\"Johnny\",\"email_user\":\"johnny.doe@example.com\",\"password_user\":\"password123\",\"address_user\":\"123 Street\",\"activated\":true}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name_user").value("Noah"));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id_user").value(1))
+                .andExpect(jsonPath("$.name_user").value("Johnny"))
+                .andDo(print());
+
+        verify(userService, times(1)).updateUser(any(User.class), eq(1));
     }
 
-    /**
-     * Tests the {@link UserController#deleteUser(int)} method.
-     * Ensures the controller deletes a user by delegating to the service.
-     *
-     * @throws Exception if an error occurs during request processing.
-     */
     @Test
-    public void testDeleteUser() throws Exception {
-        doNothing().when(serviceDB).deleteUser(1);
+    void testDeleteUser() throws Exception {
+        doNothing().when(userService).deleteUser(1);
 
         mockMvc.perform(delete("/users/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andDo(print());
 
-        verify(serviceDB, times(1)).deleteUser(1);
+        verify(userService, times(1)).deleteUser(1);
     }
 }
+

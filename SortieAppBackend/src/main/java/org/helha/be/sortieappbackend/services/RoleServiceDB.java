@@ -78,4 +78,8 @@ public class RoleServiceDB {
     public void deleteRole(int id_role) {
         repository.deleteById(id_role);
     }
+
+    public Optional<Role> getRoleByName(String roleName) {
+        return repository.findByNameRole(roleName);
+    }
 }

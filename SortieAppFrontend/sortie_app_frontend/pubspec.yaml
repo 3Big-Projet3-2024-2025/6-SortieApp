@@ -31,6 +31,8 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.2
+  file_picker: ^6.1.1
+  path_provider: ^2.1.2
   flutter_secure_storage: ^8.0.0
   get: ^4.6.5
   jwt_decoder: ^2.0.1
@@ -91,3 +93,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  assets:
+    - assets/images/default_profile.jpg

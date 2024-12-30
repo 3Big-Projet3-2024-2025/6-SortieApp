@@ -2,27 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../utils/router.dart';
+import 'package:file_picker/file_picker.dart';
+
+
+/*
+void main() {
+  runApp(const UserApp());
+}
+ */
 
 class UserApp extends StatelessWidget {
   const UserApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Management'),
-        backgroundColor: Color(0xFF87CEEB),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              redirectHome();
-            },
-          ),
-        ],
+    return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      body: UserListScreen(),
+      home: const UserListScreen(),
     );
   }
 }
@@ -45,6 +43,7 @@ class _UserListScreenState extends State<UserListScreen> {
 
   late String apiUrl;
   late String rolesApiUrl;
+  bool showAllUsers = false;
 
   List users = [];
   List roles = [];
@@ -58,10 +57,9 @@ class _UserListScreenState extends State<UserListScreen> {
     fetchRoles();
   }
 
-  // Fetch the list of users from the backend
   Future<void> fetchUsers() async {
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await http.get(Uri.parse(showAllUsers ? '${getBackendUrl()}/users/getAllUsers' : apiUrl));
       if (response.statusCode == 200) {
         setState(() {
           users = json.decode(response.body);
@@ -74,7 +72,6 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
-  // Fetch the list of roles from the backend
   Future<void> fetchRoles() async {
     try {
       final response = await http.get(Uri.parse(rolesApiUrl));
@@ -90,9 +87,8 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
-  // Add a new user to the backend
   Future<void> addUser(String name_user, String lastname_user,
-      String email_user, String address_user, int id_role) async {
+      String email, String address_user, int id_role) async {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -100,55 +96,148 @@ class _UserListScreenState extends State<UserListScreen> {
         body: json.encode({
           'name_user': name_user,
           'lastname_user': lastname_user,
-          'email': email_user,
+          'email': email,
           'address_user': address_user,
-          'role_user': {'id_role': id_role}, // Send role ID
+          'role_user': {'id_role': id_role},
         }),
       );
       if (response.statusCode == 200) {
-        fetchUsers(); // Refresh the user list after adding
+        fetchUsers();
       }
     } catch (e) {
       print('Error: $e');
     }
   }
 
-  // Update a user's data
-  Future<void> updateUser(int idUser, String name_user, String lastname_user,
-      String email_user, String address_user, int id_role) async {
+  // Import CSV Method
+  void showImportCSVDialog(BuildContext context) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
+
+    if (result != null) {
+      Uint8List? fileBytes = result.files.single.bytes;
+      String fileName = result.files.single.name;
+
+      try {
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('${getBackendUrl()}/users/import'),
+        );
+
+        if (fileBytes != null) {
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              fileBytes,
+              filename: fileName,
+            ),
+          );
+        }
+
+        var response = await request.send();
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('CSV imported successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          fetchUsers();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to import CSV.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No file selected.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Future<void> updateUser(int id, String name_user, String lastname_user,
+      String email, String address_user, int id_role, bool activated) async {
     try {
       final response = await http.put(
-        Uri.parse('$apiUrl/$idUser'),
+        Uri.parse('$apiUrl/$id'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name_user': name_user,
           'lastname_user': lastname_user,
-          'email': email_user,
+          'email': email,
           'address_user': address_user,
-          'role_user': {'id_role': id_role}, // Send role ID
+          'role_user': {'id_role': id_role},
+          'activated': activated
         }),
       );
       if (response.statusCode == 200) {
-        fetchUsers(); // Refresh the user list after updating
+        fetchUsers();
       }
     } catch (e) {
       print('Error: $e');
     }
   }
 
-  // Delete a user
-  Future<void> deleteUser(int idUser) async {
-    try {
-      final response = await http.delete(Uri.parse('$apiUrl/$idUser'));
-      if (response.statusCode == 200) {
-        fetchUsers(); // Refresh the user list after deleting
+  Future<void> deleteUser(int id) async {
+    final confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Deletion'),
+        content: const Text('Are you sure you want to delete this user?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final response = await http.delete(Uri.parse('$apiUrl/$id'));
+        if (response.statusCode == 200) {
+          fetchUsers();
+        }
+      } catch (e) {
+        print('Error: $e');
       }
-    } catch (e) {
-      print('Error: $e');
     }
   }
 
-  // Show a dialog to add a new user
+  void toggleUserView() {
+    setState(() {
+      showAllUsers = !showAllUsers;
+    });
+    fetchUsers();
+  }
+
+  bool isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
+  }
+
   void showAddUserDialog() async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
@@ -156,79 +245,108 @@ class _UserListScreenState extends State<UserListScreen> {
     final TextEditingController addressController = TextEditingController();
 
     int? selectedRoleId;
+    String? errorMessage;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Add User'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(hintText: 'Enter name'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Add User'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text(
+                        errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(hintText: 'Enter name'),
+                  ),
+                  TextField(
+                    controller: lastnameController,
+                    decoration: const InputDecoration(hintText: 'Enter lastname'),
+                  ),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(hintText: 'Enter email'),
+                  ),
+                  TextField(
+                    controller: addressController,
+                    decoration: const InputDecoration(hintText: 'Enter address'),
+                  ),
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(hintText: 'Select Role'),
+                    items: roles.map<DropdownMenuItem<int>>((role) {
+                      return DropdownMenuItem<int>(
+                        value: role['id_role'],
+                        child: Text(role['name_role']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      selectedRoleId = value;
+                    },
+                  ),
+                ],
               ),
-              TextField(
-                controller: lastnameController,
-                decoration: const InputDecoration(hintText: 'Enter lastname'),
-              ),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(hintText: 'Enter email'),
-              ),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(hintText: 'Enter address'),
-              ),
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(hintText: 'Select Role'),
-                items: roles.map<DropdownMenuItem<int>>((role) {
-                  return DropdownMenuItem<int>(
-                    value: role['id_role'],
-                    child: Text(role['name_role']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  selectedRoleId = value;
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Close the dialog
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (selectedRoleId != null) {
-                  addUser(
-                    nameController.text,
-                    lastnameController.text,
-                    emailController.text,
-                    addressController.text,
-                    selectedRoleId!,
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (nameController.text.isEmpty ||
+                        lastnameController.text.isEmpty ||
+                        emailController.text.isEmpty ||
+                        addressController.text.isEmpty ||
+                        selectedRoleId == null) {
+                      setState(() {
+                        errorMessage = 'All fields must be filled out.';
+                      });
+                    } else if (!isValidEmail(emailController.text)) {
+                      setState(() {
+                        errorMessage = 'Please enter a valid email address.';
+                      });
+                    } else {
+                      setState(() {
+                        errorMessage = null;
+                      });
+                      addUser(
+                        nameController.text,
+                        lastnameController.text,
+                        emailController.text,
+                        addressController.text,
+                        selectedRoleId!,
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  // Show a dialog to edit an existing user
   void showEditUserDialog(
-      int idUser,
+      int id,
       String currentName,
       String currentLastname,
       String currentEmail,
       String currentAddress,
-      int currentRoleId) async {
+      int currentRoleId,
+      bool currentActivated,
+      ) async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
@@ -239,73 +357,105 @@ class _UserListScreenState extends State<UserListScreen> {
     emailController.text = currentEmail;
     addressController.text = currentAddress;
 
-    if (roles.isEmpty) {
-      await fetchRoles(); // Reload roles if they are not loaded
-    }
-
     int? selectedRoleId = currentRoleId;
+    String? errorMessage;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Edit User'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(hintText: 'Enter name'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit User'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text(
+                        errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(hintText: 'Enter name'),
+                  ),
+                  TextField(
+                    controller: lastnameController,
+                    decoration: const InputDecoration(hintText: 'Enter lastname'),
+                  ),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(hintText: 'Enter email'),
+                  ),
+                  TextField(
+                    controller: addressController,
+                    decoration: const InputDecoration(hintText: 'Enter address'),
+                  ),
+                  DropdownButtonFormField<int>(
+                    value: selectedRoleId,
+                    decoration: const InputDecoration(hintText: 'Select Role'),
+                    items: roles.map<DropdownMenuItem<int>>((role) {
+                      return DropdownMenuItem<int>(
+                        value: role['id_role'],
+                        child: Text(role['name_role']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedRoleId = value;
+                      });
+                    },
+                  ),
+                  TextField(
+                    enabled: false,
+                    decoration: InputDecoration(
+                      labelText: 'Activated',
+                      hintText: currentActivated ? 'Yes' : 'No',
+                      labelStyle: const TextStyle(color: Colors.grey),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
               ),
-              TextField(
-                controller: lastnameController,
-                decoration: const InputDecoration(hintText: 'Enter lastname'),
-              ),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(hintText: 'Enter email'),
-              ),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(hintText: 'Enter address'),
-              ),
-              DropdownButtonFormField<int>(
-                value: selectedRoleId,
-                decoration: const InputDecoration(hintText: 'Select Role'),
-                items: roles.map<DropdownMenuItem<int>>((role) {
-                  return DropdownMenuItem<int>(
-                    value: role['id_role'],
-                    child: Text(role['name_role']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  selectedRoleId = value;
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Close the dialog
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (selectedRoleId != null) {
-                  updateUser(
-                    idUser,
-                    nameController.text,
-                    lastnameController.text,
-                    emailController.text,
-                    addressController.text,
-                    selectedRoleId!,
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Update'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (nameController.text.isEmpty ||
+                        lastnameController.text.isEmpty ||
+                        emailController.text.isEmpty ||
+                        addressController.text.isEmpty ||
+                        selectedRoleId == null) {
+                      setState(() {
+                        errorMessage = 'All fields must be filled out.';
+                      });
+                    } else {
+                      setState(() {
+                        errorMessage = null;
+                      });
+                      updateUser(
+                        id,
+                        nameController.text,
+                        lastnameController.text,
+                        emailController.text,
+                        addressController.text,
+                        selectedRoleId!,
+                        currentActivated,
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Update'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -314,6 +464,9 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Management'),
+      ),
       body: ListView.builder(
         itemCount: users.length,
         itemBuilder: (context, index) {
@@ -321,11 +474,42 @@ class _UserListScreenState extends State<UserListScreen> {
 
           final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
           final address = user['address_user'] ?? 'No Address';
-          final email = user['email_user'] ?? 'No Email';
+          final email = user['email'] ?? 'No Email';
+          final isActive = user['activated'] == true;
+
+          final String? base64Image = user['picture_user'];
+          Uint8List? imageBytes = (base64Image != null && base64Image.trim().isNotEmpty)
+              ? base64Decode(base64Image)
+              : null;
 
           return ListTile(
+            leading: imageBytes != null
+                ? Image.memory(
+              imageBytes,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+            )
+                : Image.asset(
+              'assets/images/default_profile.jpg',
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+            ),
             title: Text('${user['name_user']} ${user['lastname_user']}'),
-            subtitle: Text('$roleName\n$email\n$address'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$roleName\n$email\n$address'),
+                Text(
+                  'Active: ${isActive ? 'Yes' : 'No'}',
+                  style: TextStyle(
+                    color: isActive ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -338,6 +522,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     user['email'] ?? '',
                     user['address_user'] ?? '',
                     user['role_user']?['id_role'] ?? 0,
+                    user['activated'] ?? false,
                   ),
                 ),
                 IconButton(
@@ -349,9 +534,28 @@ class _UserListScreenState extends State<UserListScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: showAddUserDialog,
-        child: const Icon(Icons.add),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            onPressed: () => showImportCSVDialog(context),
+            child: const Icon(Icons.upload_file),
+          ),
+          const SizedBox(width: 15),  // Ajout d'un espace entre les boutons
+          FloatingActionButton(
+            onPressed: showAddUserDialog,
+            child: const Icon(Icons.add),
+          ),
+          const SizedBox(width: 15),  // Espace entre ajouter et voir les users
+          FloatingActionButton(
+            onPressed: toggleUserView,
+            child: Text(
+              showAllUsers ? 'Active Users' : 'See All Users',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 10),
+            ),
+          ),
+        ],
       ),
     );
   }

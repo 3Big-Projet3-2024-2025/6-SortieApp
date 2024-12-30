@@ -36,6 +36,7 @@ public class AuthentificationController {
 
             org.springframework.security.core.userdetails.User user = (User)auth.getPrincipal();
             org.helha.be.sortieappbackend.models.User customUser = userRepository.findUserByEmail(email).orElseThrow(()-> new UsernameNotFoundException("User not found with email: "+ email));
+            if (!customUser.getActivated())return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account disabled");
             JWT jwt = new JWT(jwtUtils.generateAccesToken(user,customUser), jwtUtils.generateRefreshToken(user,customUser));
             return ResponseEntity.ok(jwt);
         } catch (AuthenticationException e) {

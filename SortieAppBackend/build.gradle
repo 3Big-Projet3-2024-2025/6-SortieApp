@@ -28,6 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.security:spring-security-test'
     annotationProcessor 'org.projectlombok:lombok'
 
     // Test dependencies
@@ -37,11 +38,20 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.5.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
     testImplementation 'com.jayway.jsonpath:json-path:2.8.0'
+    implementation 'com.google.zxing:core:3.5.1'
+    implementation 'com.google.zxing:javase:3.5.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'net.coobird:thumbnailator:0.4.14'
+    implementation 'org.apache.commons:commons-csv:1.10.0'
+    implementation 'com.opencsv:opencsv:5.7.1'
+
 
     // Optional for integration tests
     runtimeOnly 'com.h2database:h2'
 
     // Database runtime
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'io.jsonwebtoken:jjwt:0.12.6'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
     // Optional for advanced test configurations
