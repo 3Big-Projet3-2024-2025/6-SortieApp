@@ -10,3 +10,8 @@ Future<String?> getAccesToken() async {
 Future<String?> getRefreshToken() async {
   return await secureStorage.read(key: 'refreshToken');
 }
+
+void deleteTokens(){
+  secureStorage.delete(key: 'accesToken');
+  secureStorage.delete(key: 'refreshToken');
+}
