@@ -39,3 +39,4 @@ out/
 ### DATA ###
 SortieAppBackend/data/mariadb/mysql/*
 !SortieAppBackend/data/mariadb/mysql/.gitkeep
+SortieAppBackend/data/mariadbWindows/
