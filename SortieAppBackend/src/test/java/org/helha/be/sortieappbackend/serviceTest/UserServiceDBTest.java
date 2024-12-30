@@ -137,7 +137,7 @@ class UserServiceDBTest {
 
         userService.deleteUser(1);
 
-        assertFalse(user.isActivated());
+        assertFalse(user.getActivated());
         verify(userRepository, times(1)).findById(1);
         verify(userRepository, times(1)).save(user);
     }

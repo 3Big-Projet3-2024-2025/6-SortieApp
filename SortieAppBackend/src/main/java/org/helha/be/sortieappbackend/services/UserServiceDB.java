@@ -4,18 +4,15 @@
 package org.helha.be.sortieappbackend.services;
 
 import com.opencsv.CSVReader;
+import net.coobird.thumbnailator.Thumbnails;
 import org.helha.be.sortieappbackend.models.Role;
 import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.geometry.Positions;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -71,7 +68,7 @@ public class UserServiceDB implements IUserService {
         Role roleStudent = roleServiceDB.getRoleByName("STUDENT")
                 .orElseThrow(() -> new IllegalArgumentException("Role STUDENT not found"));
 
-        //user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
+        user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
         user.setRole_user(roleStudent);
         return repository.save(user);
     }
