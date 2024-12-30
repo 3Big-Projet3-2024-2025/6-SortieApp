@@ -7,6 +7,7 @@ package org.helha.be.sortieappbackend.controllersTest;
 
 import org.helha.be.sortieappbackend.controllers.UserController;
 import org.helha.be.sortieappbackend.models.Role;
+import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -65,8 +67,11 @@ public class UserControllerTest {
     @Test
     public void testGetUsers() throws Exception {
         Role role = new Role(1, "Admin Local", null);
-        User user1 = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly", role, true);
-        User user2 = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies", role, false);
+        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
+        User user1 = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly",school, role, true, "picture_user");
+        school.getUsers_school().add(user1);
+        User user2 = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies",school, role, false, "picture_user");
+        school.getUsers_school().add(user2);
         List<User> users = Arrays.asList(user1, user2);
 
         when(serviceDB.getUsers()).thenReturn(users);
@@ -87,7 +92,9 @@ public class UserControllerTest {
     @Test
     public void testAddUser() throws Exception {
         Role role = new Role(1, "Admin Local", null);
-        User user = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly", role, true);
+        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
+        User user = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly",school, role, true, "picture_user");
+        school.getUsers_school().add(user);
 
         when(serviceDB.addUser(any(User.class))).thenReturn(user);
 
@@ -115,7 +122,8 @@ public class UserControllerTest {
     @Test
     public void testUpdateUser() throws Exception {
         Role role = new Role(1, "Admin Local", null);
-        User updatedUser = new User(1, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies", role, false);
+        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
+        User updatedUser = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies",school, role, false, "picture_user");
 
         when(serviceDB.updateUser(any(User.class), eq(1))).thenReturn(updatedUser);
 

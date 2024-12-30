@@ -13,4 +13,5 @@ public interface IAutorisationService {
     public Autorisation addAutorisation(Autorisation autorisation);
     public Autorisation updateAutorisation(Autorisation autorisation);
     public void deleteAutorisation(long id);
+    public List<Autorisation> getAutorisationsBySchoolId(int schoolId);
 }

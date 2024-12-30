@@ -5,6 +5,8 @@ import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.services.RoleServiceDB;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,8 +60,13 @@ public class UserController {
      * @return the updated User object.
      */
     @PutMapping(path = "/{id_user}")
-    public User updateUser(@RequestBody User user, @PathVariable int id_user) {
-        return serviceDB.updateUser(user, id_user);
+    public ResponseEntity<?> updateUser(@RequestBody User user, @PathVariable int id_user) {
+        try{
+            return ResponseEntity.ok(serviceDB.updateUser(user, id_user));
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
+        }
+
     }
 
     /**

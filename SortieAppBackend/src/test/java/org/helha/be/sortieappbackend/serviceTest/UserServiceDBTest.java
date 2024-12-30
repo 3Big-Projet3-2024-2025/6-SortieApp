@@ -6,6 +6,7 @@
 package org.helha.be.sortieappbackend.serviceTest;
 
 import org.helha.be.sortieappbackend.models.Role;
+import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.helha.be.sortieappbackend.services.RoleServiceDB;
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -61,8 +63,9 @@ public class UserServiceDBTest {
     @Test
     public void testGetUsers() {
         Role role = new Role(1, "Admin Local", null);
-        User user1 = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly", role, true);
-        User user2 = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies", role, false);
+        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
+        User user1 = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly",school, role, true, "picture_user");
+        User user2 = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies",school, role, false, "picture_user");
         when(repository.findAll()).thenReturn(Arrays.asList(user1, user2));
 
         List<User> users = serviceDB.getUsers();
@@ -79,7 +82,8 @@ public class UserServiceDBTest {
     @Test
     public void testAddUser() {
         Role role = new Role(1, "Admin Local", null);
-        User user = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly", role, true);
+        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
+        User user = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly",school, role, true, "picture_user");
         when(roleServiceDB.getRoleById(1)).thenReturn(Optional.of(role));
         when(repository.save(any(User.class))).thenReturn(user);
 
@@ -87,7 +91,7 @@ public class UserServiceDBTest {
 
         assertNotNull(result);
         assertEquals("Huseyin", result.getName_user());
-        assertEquals("hozu@helha.be", result.getEmail_user());
+        assertEquals("hozu@helha.be", result.getEmail());
     }
 
     /**
@@ -97,8 +101,9 @@ public class UserServiceDBTest {
     @Test
     public void testUpdateUser() {
         Role role = new Role(1, "Admin Local", null);
-        User existingUser = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly", role, true);
-        User updatedUser = new User(1, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies", role, false);
+        School school = new School(1,"HelHa montignies","Rue Trieu Kaisin 136", new ArrayList<>());
+        User existingUser = new User(1, "Ozudogru", "Huseyin", "hozu@helha.be", "password123", "Rue Lison 214, 6060 Gilly",school, role, true, "picture_user");
+        User updatedUser = new User(2, "Gallet", "Noah", "ngal@helha.be", "password456", "Rue Trieu Kaisin 136, 6061 Montignies",school, role, false, "picture_user");
 
         when(repository.findById(1)).thenReturn(Optional.of(existingUser));
         when(roleServiceDB.getRoleById(1)).thenReturn(Optional.of(role));
@@ -107,7 +112,7 @@ public class UserServiceDBTest {
         User result = serviceDB.updateUser(updatedUser, 1);
 
         assertEquals("Noah", result.getName_user());
-        assertEquals("ngal@helha.be", result.getEmail_user());
+        assertEquals("ngal@helha.be", result.getEmail());
     }
 
     /**
