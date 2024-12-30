@@ -5,11 +5,9 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 
 
-/*
 void main() {
   runApp(const UserApp());
 }
- */
 
 class UserApp extends StatelessWidget {
   const UserApp({super.key});
@@ -483,18 +481,49 @@ class _UserListScreenState extends State<UserListScreen> {
               : null;
 
           return ListTile(
-            leading: imageBytes != null
-                ? Image.memory(
-              imageBytes,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-            )
-                : Image.asset(
-              'assets/images/default_profile.jpg',
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
+            leading: GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Dialog(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          imageBytes != null
+                              ? Image.memory(
+                            imageBytes,
+                            fit: BoxFit.cover,
+                          )
+                              : Image.asset(
+                            'assets/images/default_profile.jpg',
+                            fit: BoxFit.cover,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              child: imageBytes != null
+                  ? Image.memory(
+                imageBytes,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              )
+                  : Image.asset(
+                'assets/images/default_profile.jpg',
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              ),
             ),
             title: Text('${user['name_user']} ${user['lastname_user']}'),
             subtitle: Column(
@@ -541,12 +570,12 @@ class _UserListScreenState extends State<UserListScreen> {
             onPressed: () => showImportCSVDialog(context),
             child: const Icon(Icons.upload_file),
           ),
-          const SizedBox(width: 15),  // Ajout d'un espace entre les boutons
+          const SizedBox(width: 15),
           FloatingActionButton(
             onPressed: showAddUserDialog,
             child: const Icon(Icons.add),
           ),
-          const SizedBox(width: 15),  // Espace entre ajouter et voir les users
+          const SizedBox(width: 15),
           FloatingActionButton(
             onPressed: toggleUserView,
             child: Text(
