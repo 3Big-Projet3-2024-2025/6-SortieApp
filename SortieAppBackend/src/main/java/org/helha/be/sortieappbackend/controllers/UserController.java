@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for handling User-related HTTP requests.
+ */
 @RestController
-@RequestMapping(path="/users")
+@RequestMapping(path = "/users")
 @CrossOrigin(origins = "*")
 public class UserController {
 
@@ -25,8 +28,16 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
 
     @GetMapping
-    public List<User> getUsers() { return serviceDB.getUsers(); }
+    public List<User> getUsers() {
+        return serviceDB.getUsers();
+    }
 
+    /**
+     * Adds a new User.
+     *
+     * @param user the User object to add.
+     * @return the added User object.
+     */
     @PostMapping
     public User addUser(@RequestBody User user) {
         // Check if a role is defined
@@ -39,33 +50,24 @@ public class UserController {
         return serviceDB.addUser(user);
     }
 
+    /**
+     * Updates an existing User.
+     *
+     * @param user    the updated User object.
+     * @param id_user the ID of the User to update.
+     * @return the updated User object.
+     */
     @PutMapping(path = "/{id_user}")
     public User updateUser(@RequestBody User user, @PathVariable int id_user) {
-        // Fetch existing user from DB
-        User existingUser = serviceDB.getUserById(id_user)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Update fields of the current user
-        existingUser.setLastname_user(user.getLastname_user());
-        existingUser.setName_user(user.getName_user());
-        existingUser.setEmail(user.getEmail());
-        if (user.getPassword_user() != null) {
-            existingUser.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
-        }
-        existingUser.setPassword_user(user.getPassword_user());
-        existingUser.setAddress_user(user.getAddress_user());
-
-        // Update the role
-        if (user.getRole_user() != null && user.getRole_user().getId_role() != 0) {
-            Role newRole = roleServiceDB.getRoleById(user.getRole_user().getId_role())
-                    .orElseThrow(() -> new RuntimeException("Role not found"));
-            existingUser.setRole_user(newRole);
-        }
-
-        return serviceDB.updateUser(existingUser, id_user);
+        return serviceDB.updateUser(user, id_user);
     }
 
-    @DeleteMapping(path="/{id_user}")
+    /**
+     * Deletes a User by ID.
+     *
+     * @param id_user the ID of the User to delete.
+     */
+    @DeleteMapping(path = "/{id_user}")
     public void deleteUser(@PathVariable int id_user) {
         serviceDB.deleteUser(id_user);
     }
