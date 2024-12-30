@@ -15,3 +15,8 @@ void deleteTokens(){
   secureStorage.delete(key: 'accesToken');
   secureStorage.delete(key: 'refreshToken');
 }
+
+Future<void> refreshTokens(String accesToken, String refreshToken) async {
+  await secureStorage.write(key: 'accesToken', value: accesToken);
+  await secureStorage.write(key: 'refreshToken', value: refreshToken);
+}
