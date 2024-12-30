@@ -1,13 +1,17 @@
 package org.helha.be.sortieappbackend.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
 
 @Entity
 @Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Autorisation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
