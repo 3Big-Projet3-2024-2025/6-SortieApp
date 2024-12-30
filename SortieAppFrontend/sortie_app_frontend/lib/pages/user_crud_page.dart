@@ -46,6 +46,10 @@ class _UserListScreenState extends State<UserListScreen> {
   List users = [];
   List roles = [];
 
+  // For search tab
+  List filteredUsers = [];
+  String searchQuery = "";
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +65,7 @@ class _UserListScreenState extends State<UserListScreen> {
       if (response.statusCode == 200) {
         setState(() {
           users = json.decode(response.body);
+          filteredUsers = users;
         });
       } else {
         throw Exception('Failed to load users');
@@ -68,6 +73,18 @@ class _UserListScreenState extends State<UserListScreen> {
     } catch (e) {
       print('Error: $e');
     }
+  }
+
+  void filterUsers(String query) {
+    setState(() {
+      searchQuery = query.toLowerCase();
+      filteredUsers = users.where((user) {
+        final name = user['name_user']?.toLowerCase() ?? '';
+        final lastname = user['lastname_user']?.toLowerCase() ?? '';
+        final email = user['email']?.toLowerCase() ?? '';
+        return name.contains(searchQuery) || lastname.contains(searchQuery) || email.contains(searchQuery);
+      }).toList();
+    });
   }
 
   Future<void> fetchRoles() async {
@@ -464,11 +481,42 @@ class _UserListScreenState extends State<UserListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Management'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (query) {
+                setState(() {
+                  searchQuery = query.toLowerCase();
+                  filteredUsers = users.where((user) {
+                    final name = user['name_user']?.toLowerCase() ?? '';
+                    final lastname = user['lastname_user']?.toLowerCase() ?? '';
+                    final email = user['email']?.toLowerCase() ?? '';
+                    return name.contains(searchQuery) ||
+                        lastname.contains(searchQuery) ||
+                        email.contains(searchQuery);
+                  }).toList();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ),
+        ),
       ),
       body: ListView.builder(
-        itemCount: users.length,
+        itemCount: filteredUsers.length,
         itemBuilder: (context, index) {
-          final user = users[index];
+          final user = filteredUsers[index];
 
           final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
           final address = user['address_user'] ?? 'No Address';

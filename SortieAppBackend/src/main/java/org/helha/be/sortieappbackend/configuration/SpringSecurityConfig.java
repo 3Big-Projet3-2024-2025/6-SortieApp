@@ -31,7 +31,7 @@ public class SpringSecurityConfig {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> {
                     //authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**").permitAll();
-                    authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**","/swagger-ui/**","/v3/api-docs","/users","users/**","auth/**","roles","schools").permitAll();
+                    authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**","/swagger-ui/**","/v3/api-docs","/users","users/**","auth/**","roles","schools/**").permitAll();
                     authorizeRequests.anyRequest().authenticated();
                 }).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }

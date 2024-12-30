@@ -8,6 +8,7 @@ import 'package:sortie_app_frontend/pages/user_crud_page.dart';
 import 'package:sortie_app_frontend/pages/schools_crud_page.dart';
 import 'package:sortie_app_frontend/pages/autorisation_crud_page.dart';
 import 'package:sortie_app_frontend/pages/my_profile_page.dart';
+import 'package:sortie_app_frontend/pages/school_crud_page.dart';
 
 void main() {
   runApp(SortieApp());
