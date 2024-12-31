@@ -10,107 +10,123 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit test class for the RoleServiceDB.
- *
- * This class tests the functionality of the RoleServiceDB service layer, ensuring
- * the correct behavior for CRUD operations related to the Role entity.
- * It uses JUnit 5 for testing and Mockito for mocking dependencies.
- */
-public class RoleServiceDBTest {
+class RoleServiceDBTest {
 
     @Mock
-    private RoleRepository repository;
+    private RoleRepository roleRepository;
 
     @InjectMocks
-    private RoleServiceDB serviceDB;
+    private RoleServiceDB roleService;
 
-    /**
-     * Initializes the mock environment before each test.
-     */
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
-    /**
-     * Tests the retrieval of all roles from the database.
-     * Ensures the service returns the expected list of roles.
-     */
     @Test
-    public void testGetRoles() {
-        Role role1 = new Role(1, "Admin Local", null);
-        Role role2 = new Role(2, "Eleve", null);
-        when(repository.findAll()).thenReturn(Arrays.asList(role1, role2));
+    void testGetRoles() {
+        Role role1 = new Role(1, "Admin", Collections.emptyList());
+        Role role2 = new Role(2, "User", Collections.emptyList());
 
-        List<Role> roles = serviceDB.getRoles();
+        when(roleRepository.findAll()).thenReturn(Arrays.asList(role1, role2));
 
+        var roles = roleService.getRoles();
+
+        assertNotNull(roles);
         assertEquals(2, roles.size());
-        assertEquals("Admin Local", roles.get(0).getName_role());
-        assertEquals("Eleve", roles.get(1).getName_role());
+        assertEquals("Admin", roles.get(0).getName_role());
+        assertEquals("User", roles.get(1).getName_role());
+
+        verify(roleRepository, times(1)).findAll();
     }
 
-    /**
-     * Tests the retrieval of a specific role by ID.
-     * Verifies that the correct role is returned if it exists.
-     */
     @Test
-    public void testGetRoleById() {
-        Role role = new Role(1, "Admin Local", null);
-        when(repository.findById(1)).thenReturn(Optional.of(role));
+    void testGetRoleById_Found() {
+        Role role = new Role(1, "Admin", Collections.emptyList());
 
-        Optional<Role> result = serviceDB.getRoleById(1);
+        when(roleRepository.findById(1)).thenReturn(Optional.of(role));
+
+        var result = roleService.getRoleById(1);
 
         assertTrue(result.isPresent());
-        assertEquals("Admin Local", result.get().getName_role());
+        assertEquals("Admin", result.get().getName_role());
+
+        verify(roleRepository, times(1)).findById(1);
     }
 
-    /**
-     * Tests the addition of a new role to the database.
-     * Ensures that the role is saved correctly.
-     */
     @Test
-    public void testAddRole() {
-        Role role = new Role(0, "Admin Local", null);
-        when(repository.save(role)).thenReturn(new Role(1, "Admin Local", null));
+    void testGetRoleById_NotFound() {
+        when(roleRepository.findById(1)).thenReturn(Optional.empty());
 
-        Role result = serviceDB.addRole(role);
+        var result = roleService.getRoleById(1);
+
+        assertFalse(result.isPresent());
+
+        verify(roleRepository, times(1)).findById(1);
+    }
+
+    @Test
+    void testAddRole() {
+        Role role = new Role(0, "Manager", Collections.emptyList());
+        Role savedRole = new Role(3, "Manager", Collections.emptyList());
+
+        when(roleRepository.save(role)).thenReturn(savedRole);
+
+        var result = roleService.addRole(role);
 
         assertNotNull(result);
-        assertEquals(1, result.getId_role());
-        assertEquals("Admin Local", result.getName_role());
+        assertEquals(3, result.getId_role());
+        assertEquals("Manager", result.getName_role());
+
+        verify(roleRepository, times(1)).save(role);
     }
 
-    /**
-     * Tests updating an existing role in the database.
-     * Ensures that the role is updated with the new values.
-     */
     @Test
-    public void testUpdateRole() {
-        Role existingRole = new Role(1, "Admin Local", null);
-        Role updatedRole = new Role(1, "Eleve", null);
+    void testUpdateRole_Existing() {
+        Role existingRole = new Role(1, "Admin", Collections.emptyList());
+        Role updatedRole = new Role(1, "Super Admin", Collections.emptyList());
 
-        when(repository.findById(1)).thenReturn(Optional.of(existingRole));
-        when(repository.save(existingRole)).thenReturn(updatedRole);
+        when(roleRepository.findById(1)).thenReturn(Optional.of(existingRole));
+        when(roleRepository.save(existingRole)).thenReturn(updatedRole);
 
-        Role result = serviceDB.updateRole(updatedRole, 1);
+        var result = roleService.updateRole(new Role(1, "Super Admin", null), 1);
 
-        assertEquals("Eleve", result.getName_role());
+        assertNotNull(result);
+        assertEquals("Super Admin", result.getName_role());
+
+        verify(roleRepository, times(1)).findById(1);
+        verify(roleRepository, times(1)).save(existingRole);
     }
 
-    /**
-     * Tests the deletion of a role by ID.
-     * Verifies that the delete operation is called once.
-     */
     @Test
-    public void testDeleteRole() {
-        serviceDB.deleteRole(1);
-        verify(repository, times(1)).deleteById(1);
+    void testUpdateRole_New() {
+        Role newRole = new Role(0, "Manager", Collections.emptyList());
+
+        when(roleRepository.findById(1)).thenReturn(Optional.empty());
+        when(roleRepository.save(newRole)).thenReturn(newRole);
+
+        var result = roleService.updateRole(newRole, 1);
+
+        assertNotNull(result);
+        assertEquals("Manager", result.getName_role());
+
+        verify(roleRepository, times(1)).findById(1);
+        verify(roleRepository, times(1)).save(newRole);
+    }
+
+    @Test
+    void testDeleteRole() {
+        doNothing().when(roleRepository).deleteById(1);
+
+        roleService.deleteRole(1);
+
+        verify(roleRepository, times(1)).deleteById(1);
     }
 }
+

@@ -56,6 +56,17 @@ public class JWTUtils {
                 .getPayload();
 
     }
+    public int getUserIdFromToken(String token) throws JwtException {
+        // Parse the token and get the claims (payload)
+        Claims claims = Jwts.parser()
+                .setSigningKey(secret)
+                .build()
+                .parseClaimsJws(token)
+                .getPayload(); // getBody() returns the claims (payload)
+
+        // Extract the 'id' claim from the payload
+        return claims.get("id", Integer.class);  // Assuming 'id' is a Long
+    }
 
 }
 

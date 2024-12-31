@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:get/get.dart';
+import '../utils/router.dart';
+
 import '../utils/router.dart';
 
 
@@ -13,7 +16,9 @@ class LoginController extends GetxController {
   var password = ''.obs;
 
   var isLoading = false.obs;
-
+  String getBackendUrl() {
+    return kIsWeb ? 'http://localhost:8081/auth/login' : 'http://10.0.2.2:8081/auth/login';
+  }
 
   Future<void> login() async {
     if(email.value.isEmpty || password.value.isEmpty ) {
@@ -23,7 +28,7 @@ class LoginController extends GetxController {
     isLoading(true);
 
 
-    final uri = Uri.parse('http://localhost:8081/auth/login');
+    final uri = Uri.parse(getBackendUrl());
 
     final request = http.MultipartRequest('POST', uri);
     request.fields['email'] = email.value;

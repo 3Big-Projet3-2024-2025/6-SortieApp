@@ -4,6 +4,7 @@ import org.helha.be.sortieappbackend.models.Autorisation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;
@@ -13,4 +14,6 @@ public interface AutorisationRepository extends JpaRepository<Autorisation, Long
 
     List<Autorisation> findByUser_id(int userId);
     Page<Autorisation> findByUser_id(int userId, Pageable page);
+    @Query("SELECT a FROM Autorisation a WHERE a.user.school_user.id_school = :schoolId")
+    List<Autorisation> findBySchoolId(int schoolId);
 }

@@ -41,6 +41,7 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
 
   late String apiUrl;
   List autorisations = [];
+  List ShowedAutorisations = [];
 
   @override
   void initState() {
@@ -59,7 +60,7 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
         final data = json.decode(response.body);
         setState(() {
           autorisations = data;
-
+          ShowedAutorisations = List.from(data);
         });
       } else {
         throw Exception('Failed to load autorisations');
@@ -81,28 +82,47 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
     int? userId,
   }) async {
     try {
-      final url = id != null ? '$apiUrl/$id' : apiUrl;
-      final method = id != null ? 'PUT' : 'POST';
+      if (type == 'Unique') {
+        jours = null;
+        dateFin = null;
+      } else if (type == 'Daily') {
+        jours = null;
+      }
 
-      final response = await http.Request(method, Uri.parse(url))
-        ..headers.addAll({'Content-Type': 'application/json'})
-        ..body = json.encode({
-          'type': type,
-          'note': note,
-          'date_debut': dateDebut,
-          'date_fin': dateFin,
-          'heure_debut': heureDebut,
-          'heure_fin': heureFin,
-          'jours': jours,
-          'user': {'id': userId},
-        });
+      final body = {
+        if (id != null) 'id': id,
+        'type': type,
+        'note': note,
+        'date_debut': dateDebut,
+        'date_fin': dateFin,
+        'heure_debut': heureDebut,
+        'heure_fin': heureFin,
+        'jours': jours,
+        'user': {'id': userId},
+      };
 
-      final streamedResponse = await response.send();
-      if (streamedResponse.statusCode == 200 || streamedResponse.statusCode == 201) {
+      print("Request Body: ${json.encode(body)}");
+
+      final uri = Uri.parse(apiUrl);
+      final response = id != null
+          ? await http.put(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      )
+          : await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("Autorisation sauvegardée avec succès !");
         fetchAutorisations();
       } else {
-        final code = streamedResponse.statusCode;
-        throw Exception('Failed to save autorisation $code');
+        print("Erreur HTTP ${response.statusCode}: ${response.body}");
+        throw Exception(
+            'Failed to save autorisation, HTTP ${response.statusCode}');
       }
     } catch (e) {
       print('Error saving autorisation: $e');
@@ -112,7 +132,8 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
   Future<void> deleteAutorisation(int id) async {
     try {
       final response = await http.delete(Uri.parse('$apiUrl/$id'));
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201 ||
+          response.statusCode == 204) {
         fetchAutorisations();
       }
     } catch (e) {
@@ -121,23 +142,26 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
   }
 
   void showAddEditDialog({Map? autorisation}) {
-    final TextEditingController noteController = TextEditingController(
-        text: autorisation != null ? autorisation['note'] : '');
-    final TextEditingController dateDebutController = TextEditingController(
-        text: autorisation != null
-            ? autorisation['date_debut']?.split('T')[0]
-            : '');
-    final TextEditingController dateFinController = TextEditingController(
-        text:
-        autorisation != null ? autorisation['date_fin']?.split('T')[0] : '');
-    final TextEditingController heureDebutController = TextEditingController(
-        text: autorisation != null ? autorisation['heure_debut'] : '');
-    final TextEditingController heureFinController = TextEditingController(
-        text: autorisation != null ? autorisation['heure_fin'] : '');
+    final noteController = TextEditingController(
+        text: autorisation?['note'] ?? '');
+    final dateDebutController = TextEditingController(
+        text: autorisation?['date_debut']?.split('T')[0] ?? '');
+    final dateFinController = TextEditingController(
+        text: autorisation?['date_fin']?.split('T')[0] ?? '');
+    final heureDebutController = TextEditingController(
+        text: autorisation?['heure_debut'] ?? '');
+    final heureFinController = TextEditingController(
+        text: autorisation?['heure_fin'] ?? '');
 
-    String? selectedType = autorisation?['type'] ?? 'Unique';
+    String selectedType = autorisation?['type'] ?? 'Unique';
     String selectedDays = autorisation?['jours'] ?? '';
-    List<String> days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    List<String> days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday'
+    ];
     Map<String, bool> daysSelected = {
       for (var day in days) day: selectedDays.contains(day),
     };
@@ -148,7 +172,9 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(autorisation != null ? 'Edit Autorisation' : 'Add Autorisation'),
+              title: Text(autorisation != null
+                  ? 'Edit Autorisation'
+                  : 'Add Autorisation'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -156,14 +182,23 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
                     DropdownButtonFormField<String>(
                       value: selectedType,
                       items: ['Unique', 'Daily', 'Weekly']
-                          .map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      ))
+                          .map((type) =>
+                          DropdownMenuItem(
+                            value: type,
+                            child: Text(type),
+                          ))
                           .toList(),
                       onChanged: (value) {
                         setState(() {
-                          selectedType = value;
+                          selectedType = value!;
+                          if (selectedType == 'Unique') {
+                            dateFinController.clear();
+                            selectedDays = '';
+                            daysSelected.updateAll((key, value) => false);
+                          } else if (selectedType == 'Daily') {
+                            selectedDays = '';
+                            daysSelected.updateAll((key, value) => false);
+                          }
                         });
                       },
                       decoration: InputDecoration(labelText: 'Type'),
@@ -185,7 +220,9 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
                         if (pickedDate != null) {
                           setState(() {
                             dateDebutController.text =
-                            '${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}';
+                            '${pickedDate.year}-${pickedDate.month.toString()
+                                .padLeft(2, '0')}-${pickedDate.day.toString()
+                                .padLeft(2, '0')}';
                           });
                         }
                       },
@@ -205,7 +242,9 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
                           if (pickedDate != null) {
                             setState(() {
                               dateFinController.text =
-                              '${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}';
+                              '${pickedDate.year}-${pickedDate.month.toString()
+                                  .padLeft(2, '0')}-${pickedDate.day.toString()
+                                  .padLeft(2, '0')}';
                             });
                           }
                         },
@@ -222,48 +261,50 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
                         if (pickedTime != null) {
                           setState(() {
                             heureDebutController.text =
-                            '${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}';
+                            '${pickedTime.hour.toString().padLeft(
+                                2, '0')}:${pickedTime.minute.toString().padLeft(
+                                2, '0')}';
                           });
                         }
                       },
                       decoration: InputDecoration(labelText: 'Start Time'),
                     ),
-                    if (selectedType != 'Unique')
-                      TextField(
-                        controller: heureFinController,
-                        readOnly: true,
-                        onTap: () async {
-                          TimeOfDay? pickedTime = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (pickedTime != null) {
-                            setState(() {
-                              heureFinController.text =
-                              '${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}';
-                            });
-                          }
-                        },
-                        decoration: InputDecoration(labelText: 'End Time'),
-                      ),
+                    TextField(
+                      controller: heureFinController,
+                      readOnly: true,
+                      onTap: () async {
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          setState(() {
+                            heureFinController.text =
+                            '${pickedTime.hour.toString().padLeft(
+                                2, '0')}:${pickedTime.minute.toString().padLeft(
+                                2, '0')}';
+                          });
+                        }
+                      },
+                      decoration: InputDecoration(labelText: 'End Time'),
+                    ),
                     if (selectedType == 'Weekly')
                       Wrap(
                         children: days
-                            .map(
-                              (day) => ChoiceChip(
-                            label: Text(day),
-                            selected: daysSelected[day]!,
-                            onSelected: (selected) {
-                              setState(() {
-                                daysSelected[day] = selected;
-                                selectedDays = daysSelected.entries
-                                    .where((entry) => entry.value)
-                                    .map((entry) => entry.key)
-                                    .join(',');
-                              });
-                            },
-                          ),
-                        )
+                            .map((day) =>
+                            ChoiceChip(
+                              label: Text(day),
+                              selected: daysSelected[day]!,
+                              onSelected: (selected) {
+                                setState(() {
+                                  daysSelected[day] = selected;
+                                  selectedDays = daysSelected.entries
+                                      .where((entry) => entry.value)
+                                      .map((entry) => entry.key)
+                                      .join(',');
+                                });
+                              },
+                            ))
                             .toList(),
                       ),
                   ],
@@ -278,7 +319,7 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
                   onPressed: () {
                     addOrUpdateAutorisation(
                       id: autorisation?['id'],
-                      type: selectedType!,
+                      type: selectedType,
                       note: noteController.text,
                       dateDebut: dateDebutController.text.isEmpty
                           ? null
@@ -293,7 +334,7 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
                           ? null
                           : heureFinController.text,
                       jours: selectedType == 'Weekly' ? selectedDays : null,
-                      userId: 1
+                      userId: 2,
                     );
                     Navigator.pop(context);
                   },
@@ -307,6 +348,33 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
     );
   }
 
+  String buildDisplayInfo(Map<String, dynamic> autorisation) {
+    String type = autorisation['type'];
+    String note = autorisation['note'] ?? "No notes";
+    String dateDebut = autorisation['date_debut']?.split('T')[0] ?? '';
+    String dateFin = (type != 'Unique' && autorisation['date_fin'] != null)
+        ? autorisation['date_fin']?.split('T')[0] ?? ''
+        : '';
+    String hours = autorisation['heure_debut'] != null
+        ? autorisation['heure_fin'] != null
+        ? "${autorisation['heure_debut']} - ${autorisation['heure_fin']}"
+        : "${autorisation['heure_debut']}"
+        : "No hours specified";
+    String joursText = '';
+    if (type == 'Weekly' && autorisation['jours'] != null && autorisation['jours'].isNotEmpty) {
+      joursText = '\nDays: ${autorisation['jours']}';
+    }
+    // Récupération du nom et prénom de l'utilisateur
+    String userName = '';
+    if (autorisation['user'] != null) {
+      String firstName = autorisation['user']['name_user'] ?? '';
+      String lastName = autorisation['user']['lastname_user'] ?? '';
+      userName = '$firstName $lastName';
+    }
+
+    return "$type: $note\nStart Date: $dateDebut${dateFin.isNotEmpty ? ' to $dateFin' : ''}\nHours: $hours$joursText\nStudent: $userName";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -314,33 +382,34 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
         itemCount: autorisations.length,
         itemBuilder: (context, index) {
           final autorisation = autorisations[index];
-
-          return ListTile(
-            title: Text('${autorisation['type']}'),
-            subtitle: Text('${autorisation['note'] ?? 'No Note'}\n'
-                'Start: ${autorisation['date_debut'] ?? 'N/A'}\n'
-                'End: ${autorisation['date_fin'] ?? 'N/A'}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => showAddEditDialog(autorisation: autorisation),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => deleteAutorisation(autorisation['id']),
-                ),
-              ],
+          return Card(
+            child: ListTile(
+              title: Text(buildDisplayInfo(autorisation)),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () => showAddEditDialog(autorisation: autorisation),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => deleteAutorisation(autorisation['id']),
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showAddEditDialog(),
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
       ),
     );
   }
+
+
 }
 

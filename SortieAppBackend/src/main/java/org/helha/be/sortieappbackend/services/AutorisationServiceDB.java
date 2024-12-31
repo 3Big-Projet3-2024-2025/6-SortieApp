@@ -47,4 +47,8 @@ public class AutorisationServiceDB implements IAutorisationService {
     public void deleteAutorisation(long id) {
         autorisationRepository.deleteById(id);
     }
+
+    public List<Autorisation> getAutorisationsBySchoolId(int schoolId) {
+        return autorisationRepository.findBySchoolId(schoolId);
+    }
 }
