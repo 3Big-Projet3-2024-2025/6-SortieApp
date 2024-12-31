@@ -9,6 +9,18 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: sortieappprojet@gmail.com
+    password: ${SORTIEAPP_EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 jwt:
   secret: fjkdfngdbjzebnhubvshubsgdvgbjhn435345fsdnbvxhcbghxcbvxcvxfjkdfngdbjzebnhubvshubsgdvgbjhn435345fsdnbvxhcbghxcbvxcvx
   expirationTokenMs: 3600000
