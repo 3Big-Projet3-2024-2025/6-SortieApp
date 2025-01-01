@@ -30,7 +30,7 @@ class adminHomePage extends StatelessWidget {
                 onPressed: () {
                   Get.offNamed('/users');
                 },
-                child: const Text('User Management'),
+                child: const Text('Users Management'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(

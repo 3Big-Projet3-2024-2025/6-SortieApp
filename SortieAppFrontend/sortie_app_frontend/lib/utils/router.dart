@@ -22,7 +22,7 @@ Future<void> redirectHome() async {
             Get.offNamed('/localAdminHome');
             break;
           case "ROLE_RESPONSIBLE":
-            Get.offNamed('/responsibleHome');
+            Get.offNamed('/studentList');
             break;
           case "ROLE_SUPERVISOR":
             Get.offNamed('/supervisorHome');
