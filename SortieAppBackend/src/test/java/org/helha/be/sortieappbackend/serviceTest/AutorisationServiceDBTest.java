@@ -41,7 +41,7 @@ public class AutorisationServiceDBTest {
         school.getUsers_school().add(user2);
 
         a1 = new Autorisation(1, Autorisation_Type.Unique, "test", new Date(2024 - 1900, Calendar.DECEMBER, 12), new Date(2024 - 1900, Calendar.DECEMBER, 12), "12:00", "12:30", null, user1);
-        a2 = new Autorisation(2, Autorisation_Type.Hebdomadaire, "test2", new Date(2024 - 1900, Calendar.DECEMBER, 12), new Date(2025 - 1900, Calendar.JUNE, 30), "12:00", "12:30", "Wednesday", user2);
+        a2 = new Autorisation(2, Autorisation_Type.Weekly, "test2", new Date(2024 - 1900, Calendar.DECEMBER, 12), new Date(2025 - 1900, Calendar.JUNE, 30), "12:00", "12:30", "Wednesday", user2);
     }
 
     @Test

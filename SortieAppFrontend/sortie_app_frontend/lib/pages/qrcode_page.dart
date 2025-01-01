@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:sortie_app_frontend/utils/backendRequest.dart';
+
+import '../utils/tokenUtils.dart';
 
 class QRCodePage extends StatefulWidget {
   const QRCodePage({Key? key}) : super(key: key);
@@ -11,51 +14,78 @@ class QRCodePage extends StatefulWidget {
 }
 
 class _QRCodePageState extends State<QRCodePage> {
-  final secureStorage = const FlutterSecureStorage();
   String userName = '';
-  String qrCodeUrl = '';
+  Uint8List? qrCodeBinary;
   bool isLoading = true;
+  Map<String, dynamic>? userData;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    fetchUserProfile();
   }
 
   Future<void> _loadUserData() async {
-    // Récupérer le userId et token depuis le stockage sécurisé
-    final header= await getHeader();
-    if ( header != null) {
-      try {
-        // Requête vers le backend pour récupérer le QR code
-        final response = await http.get(
-          Uri.parse('http://localhost:8081/qrcodes/generateFromUser'),
-          headers: header,
-        );
+    final header = await getHeader();
+    try {
+      final response = await http.get(
+        Uri.parse('${getBackendUrl()}/qrcodes/generateFromUser'),
+        headers: header,
+      );
 
-        if (response.statusCode == 200) {
-          setState(() {
-            qrCodeUrl = response.request?.url.toString() ?? '';
-            userName = 'John Doe'; // Remplace avec les vraies données du user
-            isLoading = false;
-          });
-        } else {
-          setState(() {
-            userName = 'Error loading QR Code';
-            isLoading = false;
-          });
-        }
-      } catch (e) {
+      if (response.statusCode == 200) {
         setState(() {
-          userName = 'Failed to fetch QR Code\n $e';
+          qrCodeBinary = response.bodyBytes; // Récupère l'image binaire
+          userName='${userData!['name_user']} ${userData!['lastname_user']}';
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          userName = 'Error loading QR Code: ${response.statusCode}';
           isLoading = false;
         });
       }
-    } else {
+    } catch (e) {
       setState(() {
-        userName = 'User not found';
+        userName = 'Failed to fetch QR Code\n $e';
         isLoading = false;
       });
+    }
+  }
+  Future<void> fetchUserProfile() async {
+    final String url = '${getBackendUrl()}/users/profile';
+    final String? accessToken = await getAccesToken();
+    if (accessToken != null) {
+      print("Access Token: $accessToken");
+    } else {
+      print("No Access Token found.");
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          userData = json.decode(response.body);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        throw Exception('Failed to load profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching user profile: $e');
     }
   }
 
@@ -77,8 +107,8 @@ class _QRCodePageState extends State<QRCodePage> {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            qrCodeUrl.isNotEmpty
-                ? Image.network(qrCodeUrl)  // Affiche le QR code récupéré
+            qrCodeBinary != null
+                ? Image.memory(qrCodeBinary!)
                 : const Text('No QR Code available'),
           ],
         ),

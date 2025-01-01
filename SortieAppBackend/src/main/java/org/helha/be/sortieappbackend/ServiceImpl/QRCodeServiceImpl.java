@@ -5,23 +5,20 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.helha.be.sortieappbackend.models.Autorisation;
+import org.helha.be.sortieappbackend.models.Autorisation_Type;
 import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
-import org.helha.be.sortieappbackend.services.AutorisationServiceDB;
-import org.helha.be.sortieappbackend.services.IAutorisationService;
 import org.helha.be.sortieappbackend.services.QRCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
-import java.time.*;
-
-
 import java.io.ByteArrayOutputStream;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -100,26 +97,43 @@ public class QRCodeServiceImpl implements QRCodeService {
         LocalTime currentTime = LocalTime.now();
 
         LocalDate startDate = convertToLocalDate(autorisation.getDate_debut());
-        LocalDate endDate = convertToLocalDate(autorisation.getDate_fin());
+        LocalDate endDate = autorisation.getDate_fin() != null
+                ? convertToLocalDate(autorisation.getDate_fin())
+                : null;
         LocalTime startTime = convertToLocalTime(autorisation.getHeure_debut());
-        LocalTime endTime = convertToLocalTime(autorisation.getHeure_fin());
+        LocalTime endTime = autorisation.getHeure_fin() != null
+                ? convertToLocalTime(autorisation.getHeure_fin())
+                : LocalTime.MAX; // Jusqu'à la fin de la journée
 
-        // Vérifier si la date actuelle est dans l'intervalle des dates autorisées
-        if ((currentDate.isEqual(startDate) || currentDate.isAfter(startDate)) &&
-                (currentDate.isBefore(endDate) || currentDate.isEqual(endDate))) {
+        // Vérification de la date pour autorisation de type Unique
+        if (autorisation.getType() == Autorisation_Type.Unique) {
+            if (!currentDate.isEqual(startDate)) {
+                return false;
+            }
+        } else { // Vérification des dates pour les autres types
+            if (currentDate.isBefore(startDate) || (endDate != null && currentDate.isAfter(endDate))) {
+                return false;
+            }
+        }
 
-            // Vérification de l'heure
-            if ((currentTime.isAfter(startTime) || currentTime.equals(startTime)) &&
-                    (currentTime.isBefore(endTime) || currentTime.equals(endTime))) {
-
-                // Vérification du jour
-                boolean isAuthorizedDay = checkIfAuthorizedDay(currentDate, autorisation.getJours());
-                if (isAuthorizedDay) {
-                    return true;
+        // Vérification des jours pour autorisation de type Weekly
+        if (autorisation.getType() == Autorisation_Type.Weekly) {
+            String jours = autorisation.getJours();
+            if (jours != null && !jours.isEmpty()) {
+                String currentDay = currentDate.getDayOfWeek().toString(); // Format anglais
+                if (!jours.contains(currentDay)) {
+                    return false;
                 }
             }
         }
-        return false;
+
+        // Vérification des heures
+        if (currentTime.isBefore(startTime) || currentTime.isAfter(endTime)) {
+            return false;
+        }
+
+        // Toutes les vérifications sont passées, l'utilisateur peut sortir
+        return true;
     }
 
 

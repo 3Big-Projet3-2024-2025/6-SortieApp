@@ -4,10 +4,8 @@ import io.jsonwebtoken.JwtException;
 import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
 import org.helha.be.sortieappbackend.models.Autorisation;
 import org.helha.be.sortieappbackend.models.User;
-import org.helha.be.sortieappbackend.repositories.jpa.AutorisationRepository;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.helha.be.sortieappbackend.services.IAutorisationService;
-import org.helha.be.sortieappbackend.services.QRCodeService;
 import org.helha.be.sortieappbackend.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/qrcodes")
@@ -86,7 +83,7 @@ public class QRCodeController {
         } catch (JwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);  // Internal server error
+            return ResponseEntity.status(500).body(e);  // Internal server error
         }
     }
 }
