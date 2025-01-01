@@ -1,5 +1,6 @@
 package org.helha.be.sortieappbackend.controllers;
 
+import io.jsonwebtoken.JwtException;
 import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
 import org.helha.be.sortieappbackend.models.Autorisation;
 import org.helha.be.sortieappbackend.models.User;
@@ -7,6 +8,7 @@ import org.helha.be.sortieappbackend.repositories.jpa.AutorisationRepository;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.helha.be.sortieappbackend.services.IAutorisationService;
 import org.helha.be.sortieappbackend.services.QRCodeService;
+import org.helha.be.sortieappbackend.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,9 @@ import java.util.stream.Collectors;
 public class QRCodeController {
 
     @Autowired
+    private JWTUtils jwtUtils;
+
+    @Autowired
     private QRCodeServiceImpl qrCodeServiceImpl;
 
     @Autowired
@@ -31,10 +36,15 @@ public class QRCodeController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping("/generateFromUser/{userId}")
-    public ResponseEntity<byte[]> generateQRCode(@PathVariable int userId) {
+    @GetMapping("/generateFromUser")
+    public ResponseEntity<?> generateQRCode(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || authHeader.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Authorization header is missing");
+        }
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         try {
-            // Vérification de l'activation de l'utilisateur
+            // VÃ©rification de l'activation de l'utilisateur
+            int userId = jwtUtils.getUserIdFromToken(token);
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -73,6 +83,8 @@ public class QRCodeController {
                     .contentType(MediaType.IMAGE_PNG)
                     .body(qrCode);
 
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         } catch (Exception e) {
             return ResponseEntity.status(500).body(null);  // Internal server error
         }
