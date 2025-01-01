@@ -28,9 +28,23 @@ class ResponsibleHomePage extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {
-
+                  Get.offNamed('/studentList');
                 },
-                child: const Text(''),
+                child: const Text('Students Management'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Get.offNamed('/schools');
+                },
+                child: const Text('Schools Management'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Get.offNamed('/autorisations');
+                },
+                child: const Text('Autorisations management'),
               ),
             ],
           ),

@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 
+import '../utils/router.dart';
+
 
 void main() {
   runApp(const UserApp());
@@ -14,11 +16,20 @@ class UserApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sortie\'App'),
+        backgroundColor: Color(0xFF87CEEB),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              redirectHome();
+            },
+          ),
+        ],
       ),
-      home: const UserListScreen(),
+      body: const UserListScreen(),
     );
   }
 }

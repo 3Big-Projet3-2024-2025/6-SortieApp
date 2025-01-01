@@ -53,6 +53,18 @@ public class UserController {
         return serviceDB.getUsers();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable("id") Integer id) {
+        if (id == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        User user = serviceDB.getUserById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(user);
+    }
+
     /**
      * Adds a new User to the database.
      *
