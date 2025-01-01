@@ -5,6 +5,7 @@ package org.helha.be.sortieappbackend.services;
 
 import com.opencsv.CSVReader;
 import net.coobird.thumbnailator.Thumbnails;
+import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
 import org.helha.be.sortieappbackend.models.Role;
 import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
@@ -39,6 +40,9 @@ public class UserServiceDB implements IUserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private QRCodeServiceImpl qrCodeServiceImpl;
     /**
      * Retrieve all users from the database.
      */
@@ -63,13 +67,30 @@ public class UserServiceDB implements IUserService {
     /**
      * Add a new user to the database.
      */
+
+
+    /**
+     * Add a new user to the database and generate a QR code if the user is a student and activated.
+     */
     public User addUser(User user) {
         Role roleStudent = roleServiceDB.getRoleByName("STUDENT")
                 .orElseThrow(() -> new IllegalArgumentException("Role STUDENT not found"));
 
         user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
         user.setRole_user(roleStudent);
-        return repository.save(user);
+        user.setActivated(true);  // Activer directement lors de l'ajout (optionnel)
+
+        User savedUser = repository.save(user);
+
+        // Générer un QR code si l'utilisateur est un étudiant activé
+        if (user.getActivated()) {
+            try {
+                qrCodeServiceImpl.generateQRCodeFromAutorisation(null, 300, 300);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to generate QR code for student", e);
+            }
+        }
+        return savedUser;
     }
 
     /**

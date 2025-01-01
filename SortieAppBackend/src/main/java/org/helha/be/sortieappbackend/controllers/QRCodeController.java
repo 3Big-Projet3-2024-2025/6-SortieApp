@@ -2,7 +2,9 @@ package org.helha.be.sortieappbackend.controllers;
 
 import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
 import org.helha.be.sortieappbackend.models.Autorisation;
+import org.helha.be.sortieappbackend.models.User;
 import org.helha.be.sortieappbackend.repositories.jpa.AutorisationRepository;
+import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.helha.be.sortieappbackend.services.IAutorisationService;
 import org.helha.be.sortieappbackend.services.QRCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,25 +28,37 @@ public class QRCodeController {
     @Autowired
     private IAutorisationService autorisationService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping("/generateFromUser/{userId}")
     public ResponseEntity<byte[]> generateQRCode(@PathVariable int userId) {
         try {
-            // Get all autorisations for the user
-            List<Autorisation> autorisations = autorisationService.getAutorisationsByUserID(userId);
+            // Vérification de l'activation de l'utilisateur
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            if (autorisations.isEmpty()) {
-                // If no autorisations are found, return the "Exit not authorized" QR code
-                byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("Exit non authorized", 300, 300);
+            if (!user.getActivated()) {
+                byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("User is not activated", 300, 300);
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
                         .contentType(MediaType.IMAGE_PNG)
                         .body(qrCode);
             }
 
-            // Check if any of the autorisations are valid for the current time and day
+            // Get all autorisations for the user
+            List<Autorisation> autorisations = autorisationService.getAutorisationsByUserID(userId);
+
+            if (autorisations.isEmpty()) {
+                byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("Exit not authorized", 300, 300);
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
+                        .contentType(MediaType.IMAGE_PNG)
+                        .body(qrCode);
+            }
+
             for (Autorisation autorisation : autorisations) {
                 if (qrCodeServiceImpl.checkIfUserCanLeave(autorisation)) {
-                    // If authorization is valid, generate and return the QR code
                     byte[] qrCode = qrCodeServiceImpl.generateQRCodeFromAutorisation(autorisation, 300, 300);
                     return ResponseEntity.ok()
                             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
@@ -53,8 +67,7 @@ public class QRCodeController {
                 }
             }
 
-            // If no valid autorisation found, return the "Exit not authorized" QR code
-            byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("Exit non authorized", 300, 300);
+            byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("Exit not authorized", 300, 300);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
                     .contentType(MediaType.IMAGE_PNG)
