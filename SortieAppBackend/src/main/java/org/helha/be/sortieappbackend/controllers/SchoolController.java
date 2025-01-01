@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/schools")
@@ -41,6 +42,20 @@ public class SchoolController {
 
         if (school.isPresent()) {
             List<User> users = school.get().getUsers_school();
+            return ResponseEntity.ok(users);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/getStudentsBySchool/{id_school}")
+    public ResponseEntity<List<User>> getStudentsBySchool(@PathVariable int id_school) {
+        Optional<School> school = schoolService.getSchoolById(id_school);
+
+        if (school.isPresent()) {
+            List<User> users = school.get().getUsers_school().stream()
+                    .filter(user -> "student".equalsIgnoreCase(user.getRole_user().getName_role()))
+                    .collect(Collectors.toList());
             return ResponseEntity.ok(users);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

@@ -5,7 +5,10 @@
 package org.helha.be.sortieappbackend.controllers;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.transaction.Transactional;
+import org.helha.be.sortieappbackend.models.ActivationToken;
 import org.helha.be.sortieappbackend.models.User;
+import org.helha.be.sortieappbackend.repositories.jpa.ActivationTokenRepository;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.helha.be.sortieappbackend.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +20,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * REST controller for handling User-related HTTP requests.
@@ -36,8 +41,12 @@ public class UserController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Autowired
     private JWTUtils jwtUtils;
+
+    @Autowired
+    private ActivationTokenRepository activationTokenRepository;
 
     @GetMapping(path="/getAllUsers")
     public List<User> getAllUsers() {
@@ -53,6 +62,18 @@ public class UserController {
     @GetMapping
     public List<User> getUsers() {
         return serviceDB.getUsers();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable("id") Integer id) {
+        if (id == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        User user = serviceDB.getUserById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(user);
     }
 
     /**
@@ -132,7 +153,6 @@ public class UserController {
         }
     }
 
-
     /**
      * Handles HTTP POST requests to import users from a CSV file.
      *
@@ -192,4 +212,323 @@ public class UserController {
         }
     }
 
+    /**
+     * Activates a user account using the activation token provided.
+     *
+     * @param token the activation token received by email.
+     * @return a ResponseEntity indicating the result of the activation process.
+     */
+    @GetMapping("/activate")
+    public ResponseEntity<String> activateAccount(@RequestParam String token) {
+        try {
+            // Searching the token in the database
+            Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(token);
+
+            if (optionalToken.isPresent()) {
+                ActivationToken activationToken = optionalToken.get();
+
+                // Verifying if token has expired
+                if (activationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token has expired.");
+                }
+
+                // Activating associated user
+                User user = activationToken.getUser();
+                user.setActivated(true);
+                serviceDB.updateUser(user, user.getId());
+
+                // Deleting token after activation
+                activationTokenRepository.delete(activationToken);
+
+                return ResponseEntity.ok("Account activated successfully!");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // for debug
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during activation.");
+        }
+    }
+
+    /**
+     * Processes the password reset form submitted via an HTML POST request.
+     *
+     * This method validates the activation token and ensures that the provided
+     * password and confirmation password match. If the token is valid and the
+     * passwords are valid, the associated user's password is updated, and the
+     * account is activated. The activation token is deleted upon successful processing.
+     *
+     * @param token           The activation token provided in the request.
+     * @param password        The new password entered by the user.
+     * @param confirmPassword The confirmation of the new password entered by the user.
+     * @return A ResponseEntity indicating the result of the operation:
+     *         - HTTP 200 OK if the password is successfully updated and the account activated.
+     *         - HTTP 400 Bad Request if the token is invalid, expired, or the passwords do not match.
+     */
+    @Transactional
+    @PostMapping("/set-password")
+    public ResponseEntity<String> processPasswordForm(
+            @RequestParam String token,
+            @RequestParam String password,
+            @RequestParam String confirmPassword) {
+
+        // Verifying if passwords match
+        if (!password.equals(confirmPassword)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Passwords do not match</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #f5f5f5;
+                    }
+                    .container {
+                        max-width: 400px;
+                        margin: 100px auto;
+                        padding: 20px;
+                        background-color: #ffffff;
+                        border-radius: 10px;
+                        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                        text-align: center;
+                    }
+                    h1 {
+                        color: red;
+                        font-size: 24px;
+                    }
+                    a {
+                        display: inline-block;
+                        margin-top: 20px;
+                        text-decoration: none;
+                        color: #003366;
+                        font-weight: bold;
+                    }
+                    a:hover {
+                        color: #0055a5;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Passwords do not match</h1>
+                    <a href="/users/activate-form?token=%s">Try Again</a>
+                </div>
+            </body>
+            </html>
+        """.formatted(token));
+        }
+
+        // Verifying if token is ok
+        Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(token);
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Invalid Token</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #f5f5f5;
+                    }
+                    .container {
+                        max-width: 400px;
+                        margin: 100px auto;
+                        padding: 20px;
+                        background-color: #ffffff;
+                        border-radius: 10px;
+                        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                        text-align: center;
+                    }
+                    h1 {
+                        color: red;
+                        font-size: 24px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Invalid or already used token</h1>
+                </div>
+            </body>
+            </html>
+        """);
+        }
+
+        ActivationToken activationToken = optionalToken.get();
+
+        // Verifying if token has expired
+        if (activationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Token Expired</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #f5f5f5;
+                    }
+                    .container {
+                        max-width: 400px;
+                        margin: 100px auto;
+                        padding: 20px;
+                        background-color: #ffffff;
+                        border-radius: 10px;
+                        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                        text-align: center;
+                    }
+                    h1 {
+                        color: red;
+                        font-size: 24px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Token has expired</h1>
+                </div>
+            </body>
+            </html>
+        """);
+        }
+
+        User user = activationToken.getUser();
+        user.setPassword_user(passwordEncoder.encode(password));
+        user.setActivated(true);
+
+        serviceDB.updateUser(user, user.getId());
+
+        // Deleting token after use (for not using link twice)
+        activationTokenRepository.deleteByToken(token);
+        activationTokenRepository.flush(); // Forcing synchronisation of Database
+
+        // Response if OK
+        return ResponseEntity.ok("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Password Set</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f5f5f5;
+                }
+                .container {
+                    max-width: 400px;
+                    margin: 100px auto;
+                    padding: 20px;
+                    background-color: #ffffff;
+                    border-radius: 10px;
+                    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                    text-align: center;
+                }
+                h1 {
+                    color: green;
+                    font-size: 24px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Password set successfully!</h1>
+            </div>
+        </body>
+        </html>
+    """);
+    }
+
+    /**
+     * Generates an HTML form for setting a new password, based on a provided activation token.
+     *
+     * This endpoint validates the provided token and, if valid, returns a styled HTML form where
+     * the user can enter and confirm a new password. If the token is invalid or expired,
+     * an error message is returned instead.
+     *
+     * The HTML form includes:
+     * - Input fields for the new password and confirmation password.
+     * - JavaScript-based validation to ensure the passwords match and meet minimum length requirements.
+     *
+     * @param token the activation token provided to the user via email.
+     * @return a ResponseEntity containing:
+     *         - A styled HTML form if the token is valid.
+     *         - An error message if the token is invalid or expired (HTTP 400 Bad Request).
+     */
+
+    @GetMapping("/activate-form")
+    public ResponseEntity<String> getActivationForm(@RequestParam String token) {
+        Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(token);
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ERROR : Invalid or expired token. Link probably already used or expired.");
+        }
+
+        String htmlForm = "<!DOCTYPE html>" +
+                "<html lang=\"en\">" +
+                "<head>" +
+                "    <meta charset=\"UTF-8\">" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                "    <title>Set Your Password</title>" +
+                "    <style>" +
+                "        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }" +
+                "        .container { max-width: 400px; margin: 100px auto; padding: 20px; background-color: #ffffff; " +
+                "            border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); text-align: center; }" +
+                "        .container h1 { font-size: 24px; margin-bottom: 20px; color: #003366; }" +
+                "        label { display: block; text-align: left; margin-bottom: 5px; font-weight: bold; color: #003366; }" +
+                "        input[type=\"password\"] { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cccccc; border-radius: 5px; box-sizing: border-box; }" +
+                "        button { width: 100%; padding: 10px; background-color: #003366; color: #ffffff; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }" +
+                "        button:hover { background-color: #0055a5; }" +
+                "        #message { color: red; margin-bottom: 15px; }" +
+                "        .footer { margin-top: 20px; font-size: 12px; color: #777777; }" +
+                "    </style>" +
+                "</head>" +
+                "<body>" +
+                "    <div class=\"container\">" +
+                "        <h1>Set Your Password</h1>" +
+                "        <form id=\"passwordForm\" action=\"/users/set-password\" method=\"POST\">" +
+                "            <input type=\"hidden\" name=\"token\" value=\"" + token + "\">" +
+                "            <label for=\"password\">New Password:</label>" +
+                "            <input type=\"password\" id=\"password\" name=\"password\" required>" +
+                "            <label for=\"confirmPassword\">Confirm Password:</label>" +
+                "            <input type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" required>" +
+                "            <span id=\"message\"></span>" +
+                "            <button type=\"submit\">Submit</button>" +
+                "        </form>" +
+                "        <div class=\"footer\">© 2024 Sortie'App.</div>" +
+                "    </div>" +
+                "    <script>" +
+                "        document.getElementById(\"passwordForm\").addEventListener(\"submit\", function(event) {" +
+                "            const password = document.getElementById(\"password\").value;" +
+                "            const confirmPassword = document.getElementById(\"confirmPassword\").value;" +
+                "            const message = document.getElementById(\"message\");" +
+                "            message.textContent = \"\";" +
+                "            if (password !== confirmPassword) {" +
+                "                event.preventDefault();" +
+                "                message.textContent = \"Passwords do not match.\";" +
+                "            } else if (password.length < 8) {" +
+                "                event.preventDefault();" +
+                "                message.textContent = \"Password must be at least 8 characters.\";" +
+                "            }" +
+                "        });" +
+                "    </script>" +
+                "</body>" +
+                "</html>";
+        return ResponseEntity.ok(htmlForm);
+    }
 }

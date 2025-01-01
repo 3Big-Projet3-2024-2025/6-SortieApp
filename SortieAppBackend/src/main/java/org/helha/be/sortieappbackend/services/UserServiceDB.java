@@ -6,21 +6,25 @@ package org.helha.be.sortieappbackend.services;
 import com.opencsv.CSVReader;
 import net.coobird.thumbnailator.Thumbnails;
 import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
+import org.helha.be.sortieappbackend.models.ActivationToken;
 import org.helha.be.sortieappbackend.models.Role;
 import org.helha.be.sortieappbackend.models.School;
 import org.helha.be.sortieappbackend.models.User;
+import org.helha.be.sortieappbackend.repositories.jpa.ActivationTokenRepository;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.mail.MessagingException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -33,10 +37,16 @@ public class UserServiceDB implements IUserService {
     private UserRepository repository;
 
     @Autowired
+    private ActivationTokenRepository activationTokenRepository;
+
+    @Autowired
     private RoleServiceDB roleServiceDB;
 
     @Autowired
     private SchoolServiceDB schoolServiceDB;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -73,22 +83,32 @@ public class UserServiceDB implements IUserService {
      * Add a new user to the database and generate a QR code if the user is a student and activated.
      */
     public User addUser(User user) {
+        //TODO : Ici y'a un stut :  faudra changer car ça va probablement causer un soucis...
         Role roleStudent = roleServiceDB.getRoleByName("STUDENT")
                 .orElseThrow(() -> new IllegalArgumentException("Role STUDENT not found"));
-
-        user.setPassword_user(passwordEncoder.encode(user.getPassword_user()));
         user.setRole_user(roleStudent);
-        user.setActivated(true);  // Activer directement lors de l'ajout (optionnel)
 
         User savedUser = repository.save(user);
 
-        // Générer un QR code si l'utilisateur est un étudiant activé
-        if (user.getActivated()) {
-            try {
-                qrCodeServiceImpl.generateQRCodeFromAutorisation(null, 300, 300);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to generate QR code for student", e);
-            }
+        // Generating activation token
+        String token = emailService.generateActivationToken();
+        ActivationToken activationToken = new ActivationToken();
+        activationToken.setToken(token);
+        activationToken.setUser(savedUser);
+        activationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // Expiration in 24 hours
+
+        // Saving token in the database
+        activationTokenRepository.save(activationToken);
+
+        // Activation link
+        String activationLink = "http://localhost:8081/users/activate?token=" + token;
+
+        // Sending Email
+        try {
+            emailService.sendActivationEmail(savedUser.getEmail(), token);
+        } catch (MessagingException e) {
+            System.err.println("Failed to send activation email: " + e.getMessage());
+            throw new RuntimeException("Failed to send activation email", e);
         }
         return savedUser;
     }

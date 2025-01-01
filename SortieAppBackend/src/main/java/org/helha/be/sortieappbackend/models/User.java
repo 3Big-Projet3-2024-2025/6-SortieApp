@@ -1,5 +1,6 @@
 package org.helha.be.sortieappbackend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class User {
     /**
      * The email address of the User.
      */
+    @Column(unique = true, nullable = false)
     private String email;
 
     /**
@@ -63,8 +65,36 @@ public class User {
      */
     private boolean activated;
 
+    /**
+     * Stores the user's profile picture as a Base64-encoded string.
+     *
+     * This field is mapped to a database column of type `LONGTEXT`,
+     * allowing it to store large amounts of data, such as images.
+     *
+     * The profile picture is typically expected to be in a Base64-encoded format,
+     * which allows binary image data to be safely stored as text in the database.
+     */
+
     @Column(columnDefinition = "LONGTEXT")
     private String picture_user;
+
+    /**
+     * Represents a one-to-one relationship between a User and an ActivationToken.
+     *
+     * This mapping defines that each user can have one associated activation token,
+     * and the token is mapped back to the user using the "user" field in the
+     * ActivationToken entity.
+     *
+     * The `cascade = CascadeType.ALL` ensures that any changes to the User entity
+     * (e.g., deletion) are automatically propagated to the associated ActivationToken.
+     *
+     * The `@JsonIgnore` annotation prevents the activation token from being serialized
+     * into JSON responses to avoid exposing sensitive data in API responses.
+     */
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private ActivationToken activation_token;
 
     /**
      * Default constructor.
