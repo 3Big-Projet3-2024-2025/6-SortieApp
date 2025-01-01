@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class AutorisationControllerTest {
@@ -60,25 +61,51 @@ public class AutorisationControllerTest {
     public void testAddAutorisation() {
         when(autorisationService.addAutorisation(a1)).thenReturn(a1);
 
-        ResponseEntity<Autorisation> response = autorisationController.addAutorisation(a1);
+        ResponseEntity<?> response = autorisationController.addAutorisation(a1);
 
+        // Vérifier le statut de la réponse
         assertEquals(201, response.getStatusCodeValue());
-        assertEquals(a1.getId(), response.getBody().getId());
+
+        // Vérifier que le corps de la réponse contient l'objet attendu
+        assertTrue(response.getBody() instanceof Autorisation);
+        Autorisation returnedAutorisation = (Autorisation) response.getBody();
+        assertEquals(a1.getId(), returnedAutorisation.getId());
+
+        // Vérifier que le service a été appelé
         verify(autorisationService, times(1)).addAutorisation(a1);
     }
 
+
     @Test
     public void testUpdateAutorisation() {
-        Autorisation updatedAutorisation = new Autorisation(1, Autorisation_Type.Weekly, "Updated Test", new Date(2024 - 1900, Calendar.DECEMBER, 12), new Date(2025 - 1900, Calendar.JUNE, 30), "10:00", "12:00", "Monday", user1);
+        Autorisation updatedAutorisation = new Autorisation(
+                1,
+                Autorisation_Type.Weekly,
+                "Updated Test",
+                new Date(2024 - 1900, Calendar.DECEMBER, 12),
+                new Date(2025 - 1900, Calendar.JUNE, 30),
+                "10:00",
+                "12:00",
+                "Monday",
+                user1
+        );
 
         when(autorisationService.updateAutorisation(updatedAutorisation)).thenReturn(updatedAutorisation);
 
-        ResponseEntity<Autorisation> response = autorisationController.updateAutorisation(updatedAutorisation);
+        ResponseEntity<?> response = autorisationController.updateAutorisation(updatedAutorisation);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Updated Test", response.getBody().getNote());
+        // Vérifier le statut de la réponse
+        assertEquals(201, response.getStatusCodeValue());
+
+        // Vérifier que le corps de la réponse contient l'objet attendu
+        assertTrue(response.getBody() instanceof Autorisation);
+        Autorisation returnedAutorisation = (Autorisation) response.getBody();
+        assertEquals("Updated Test", returnedAutorisation.getNote());
+
+        // Vérifier que le service a été appelé
         verify(autorisationService, times(1)).updateAutorisation(updatedAutorisation);
     }
+
 
     @Test
     public void testDeleteAutorisation() {

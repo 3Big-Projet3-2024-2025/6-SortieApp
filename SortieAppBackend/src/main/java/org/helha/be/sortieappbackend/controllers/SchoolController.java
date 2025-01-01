@@ -85,6 +85,7 @@ public class SchoolController {
         return schoolService.updateSchool(school, id_school);
     }
 
+
     /**
      * Deletes a school by ID.
      *

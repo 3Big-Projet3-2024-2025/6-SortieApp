@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sortie_app_frontend/pages/qrcode_page.dart';
 
 class studentHomePage extends StatelessWidget {
   final secureStorage = const FlutterSecureStorage();
@@ -28,10 +29,11 @@ class studentHomePage extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {
-
+                  Get.to(() => const QRCodePage());
                 },
                 child: const Text('QR code'),
               ),
+
             ],
           ),
         )

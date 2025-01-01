@@ -113,6 +113,7 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
+  // Add a new user to the backend
   Future<void> addUser(String name_user, String lastname_user,
       String email, String address_user, int id_role) async {
     try {
@@ -264,6 +265,7 @@ class _UserListScreenState extends State<UserListScreen> {
     return emailRegex.hasMatch(email);
   }
 
+  // Show a dialog to add a new user
   void showAddUserDialog() async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();

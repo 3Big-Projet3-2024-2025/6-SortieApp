@@ -12,6 +12,7 @@ import org.helha.be.sortieappbackend.repositories.jpa.ActivationTokenRepository;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.helha.be.sortieappbackend.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,6 +58,7 @@ public class UserController {
      *
      * @return a list of all {@link User} objects.
      */
+
     @GetMapping
     public List<User> getUsers() {
         return serviceDB.getUsers();

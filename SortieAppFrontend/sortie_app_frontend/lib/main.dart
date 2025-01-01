@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sortie_app_frontend/pages/login_page.dart';
 import 'package:sortie_app_frontend/pages/admin_home_page.dart';
+import 'package:sortie_app_frontend/pages/qrcode_page.dart';
 import 'package:sortie_app_frontend/pages/student_home_page.dart';
 import 'package:sortie_app_frontend/pages/responsible_home_page.dart';
 import 'package:sortie_app_frontend/pages/student_school_list.dart';
@@ -31,6 +32,8 @@ class SortieApp extends StatelessWidget {
         GetPage(name: '/responsibleHome', page: () => ResponsibleHomePage()),
         GetPage(name: '/myProfile', page: () => MyProfile()), // Ajout de la route MyProfile
         GetPage(name: '/studentList', page: () => StudentListPage()),
+        GetPage(name: '/qrcode', page: () => const QRCodePage()),
+
       ],
     );
   }

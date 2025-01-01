@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/Autorisations")
 @CrossOrigin(origins = "*")
+@RequestMapping(path = "/Autorisations")
 public class AutorisationController {
     @Autowired
     private IAutorisationService autorisationService;

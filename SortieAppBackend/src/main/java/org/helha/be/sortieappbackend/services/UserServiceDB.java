@@ -5,6 +5,7 @@ package org.helha.be.sortieappbackend.services;
 
 import com.opencsv.CSVReader;
 import net.coobird.thumbnailator.Thumbnails;
+import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
 import org.helha.be.sortieappbackend.models.ActivationToken;
 import org.helha.be.sortieappbackend.models.Role;
 import org.helha.be.sortieappbackend.models.School;
@@ -50,6 +51,8 @@ public class UserServiceDB implements IUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private QRCodeServiceImpl qrCodeServiceImpl;
     /**
      * Retrieve all users from the database.
      */
@@ -73,6 +76,11 @@ public class UserServiceDB implements IUserService {
 
     /**
      * Add a new user to the database.
+     */
+
+
+    /**
+     * Add a new user to the database and generate a QR code if the user is a student and activated.
      */
     public User addUser(User user) {
         //TODO : Ici y'a un stut :  faudra changer car ça va probablement causer un soucis...
