@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 
+import '../utils/backendRequest.dart';
 import '../utils/router.dart';
 
 
@@ -42,13 +43,6 @@ class UserListScreen extends StatefulWidget {
 }
 
 class _UserListScreenState extends State<UserListScreen> {
-  String getBackendUrl() {
-    if (kIsWeb) {
-      return 'http://localhost:8081'; // URL Backend for Web
-    } else {
-      return 'http://10.0.2.2:8081'; // URL Backend for Android Emulator
-    }
-  }
 
   late String apiUrl;
   late String rolesApiUrl;
@@ -72,7 +66,8 @@ class _UserListScreenState extends State<UserListScreen> {
 
   Future<void> fetchUsers() async {
     try {
-      final response = await http.get(Uri.parse(showAllUsers ? '${getBackendUrl()}/users/getAllUsers' : apiUrl));
+      var header = await getHeader();
+      final response = await http.get(Uri.parse(showAllUsers ? '${getBackendUrl()}/users/getAllUsers' : apiUrl),headers: header);
       if (response.statusCode == 200) {
         setState(() {
           users = json.decode(response.body);

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:sortie_app_frontend/utils/backendRequest.dart';
 import 'package:sortie_app_frontend/utils/tokenUtils.dart';
 
 class MyProfile extends StatefulWidget {
@@ -23,20 +24,12 @@ class _MyProfileState extends State<MyProfile> {
   }
 
   Future<void> fetchUserProfile() async {
-    final String url = 'http://10.0.2.2:8081/users/profile';
-    final String? accessToken = await getAccesToken();
-    if (accessToken != null) {
-      print("Access Token: $accessToken");
-    } else {
-      print("No Access Token found.");
-    }
-
+    final String url = "${getBackendUrl()}/users/profile";
     try {
+      var header = await getHeader();
       final response = await http.get(
         Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-        },
+        headers: header,
       );
 
       if (response.statusCode == 200) {

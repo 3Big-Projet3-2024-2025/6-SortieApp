@@ -68,9 +68,7 @@ class _StudentListScreen extends State<StudentListScreen> {
         // Récupérer la liste des étudiants de la même école
         final studentsResponse = await http.get(
           Uri.parse('${uri}/schools/getStudentsBySchool/$schoolId'),
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-          },
+          headers: header,
         );
 
         if (studentsResponse.statusCode == 200) {
