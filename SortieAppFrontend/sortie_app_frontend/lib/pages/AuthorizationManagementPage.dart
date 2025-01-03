@@ -20,7 +20,7 @@ class AuthorizationManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Autorisations Management'),
+        title: const Text('Sortie\'App'),
         backgroundColor: Color(0xFF87CEEB),
         actions: [
           IconButton(

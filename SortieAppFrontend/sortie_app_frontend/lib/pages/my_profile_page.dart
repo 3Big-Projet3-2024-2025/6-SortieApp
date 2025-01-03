@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:sortie_app_frontend/pages/qrcode_page.dart';
 import 'package:sortie_app_frontend/utils/backendRequest.dart';
 import 'package:sortie_app_frontend/utils/tokenUtils.dart';
 
@@ -68,16 +71,13 @@ class _MyProfileState extends State<MyProfile> {
   }
 
   Future<void> _updateProfilePicture(String base64Image) async {
-    final String url = 'http://10.0.2.2:8081/users/updateProfilePicture';
-    final String? accessToken = await getAccesToken();
+    final String url = '${getBackendUrl()}/users/updateProfilePicture';
+    final header = await getHeader();
 
     try {
       final response = await http.put(
         Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
+        headers: header,
         body: json.encode({'picture_user': base64Image}),
       );
 
@@ -97,7 +97,16 @@ class _MyProfileState extends State<MyProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: const Text('Sortie\'App'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await secureStorage.deleteAll();
+              Get.offNamed('/login');
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -185,10 +194,19 @@ class _MyProfileState extends State<MyProfile> {
               label: 'School',
               value: userData!['school_user']?['name_school'] ?? 'N/A',
             ),
-            const SizedBox(height: 10),
+            /*const SizedBox(height: 10),
             ProfileField(
               label: 'Role',
               value: userData!['role_user']?['name_role'] ?? 'N/A',
+            ),*/
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const QRCodePage()),
+                );
+              },
+              child: const Text('Show Qr Code'),
             ),
           ],
         ),

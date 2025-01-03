@@ -101,17 +101,17 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
       };
 
       print("Request Body: ${json.encode(body)}");
-
+      final header = await getHeader();
       final uri = Uri.parse(apiUrl);
       final response = id != null
           ? await http.put(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: header,
         body: json.encode(body),
       )
           : await http.post(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: header,
         body: json.encode(body),
       );
 
@@ -130,7 +130,8 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
 
   Future<void> deleteAutorisation(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$apiUrl/$id'));
+      final header = await getHeader();
+      final response = await http.delete(Uri.parse('$apiUrl/$id'),headers: header);
       if (response.statusCode == 200 || response.statusCode == 201 ||
           response.statusCode == 204) {
         fetchAutorisations();

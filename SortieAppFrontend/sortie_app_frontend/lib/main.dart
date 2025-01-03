@@ -26,12 +26,12 @@ class SortieApp extends StatelessWidget {
       getPages: [
         GetPage(name: '/login', page: () => loginPage()),
         GetPage(name: '/adminHome', page: () => adminHomePage()),
-        GetPage(name: '/studentHome', page: () => studentHomePage()),
+        //GetPage(name: '/studentHome', page: () => studentHomePage()),
         GetPage(name: '/users', page: () => UserApp()),
         GetPage(name: '/schools', page: () => SchoolsCrud()),
         GetPage(name: '/autorisations', page: () => AutorisationCrudPage()),
         GetPage(name: '/responsibleHome', page: () => ResponsibleHomePage()),
-        GetPage(name: '/myProfile', page: () => MyProfile()), // Ajout de la route MyProfile
+        GetPage(name: '/studentHome', page: () => MyProfile()), // Ajout de la route MyProfile
         GetPage(name: '/studentList', page: () => StudentListPage()),
         GetPage(name: '/qrcode', page: () => const QRCodePage()),
         GetPage(name: '/supervisorHome', page: () => QRScannerPage())

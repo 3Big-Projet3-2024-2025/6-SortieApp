@@ -10,7 +10,7 @@ class adminHomePage extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xFF87CEEB),
-          title: const Text('Home'),
+          title: const Text('Sortie\'App'),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),

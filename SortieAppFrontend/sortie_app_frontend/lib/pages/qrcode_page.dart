@@ -22,8 +22,8 @@ class _QRCodePageState extends State<QRCodePage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
     fetchUserProfile();
+    _loadUserData();
   }
 
   Future<void> _loadUserData() async {
