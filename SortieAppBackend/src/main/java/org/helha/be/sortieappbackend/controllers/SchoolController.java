@@ -62,7 +62,7 @@ public class SchoolController {
         }
     }
 
-    @GetMapping("/getStudentsBySchool/{id_school}")
+    @GetMapping("/getSupervisorBySchool/{id_school}")
     public ResponseEntity<List<User>> getSupervisorBySchool(@PathVariable int id_school) {
         Optional<School> school = schoolService.getSchoolById(id_school);
 
