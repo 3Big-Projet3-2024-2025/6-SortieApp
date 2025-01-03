@@ -62,6 +62,20 @@ public class SchoolController {
         }
     }
 
+    @GetMapping("/getStudentsBySchool/{id_school}")
+    public ResponseEntity<List<User>> getSupervisorBySchool(@PathVariable int id_school) {
+        Optional<School> school = schoolService.getSchoolById(id_school);
+
+        if (school.isPresent()) {
+            List<User> users = school.get().getUsers_school().stream()
+                    .filter(user -> "supervisor".equalsIgnoreCase(user.getRole_user().getName_role()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(users);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     /**
      * Adds a new school.
      *
