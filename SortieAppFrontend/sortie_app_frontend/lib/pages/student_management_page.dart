@@ -5,7 +5,6 @@ import 'dart:convert';
 import '../utils/backendRequest.dart';
 import '../utils/router.dart';
 
-
 class student_management_page extends StatelessWidget {
   const student_management_page({super.key});
 
@@ -75,53 +74,54 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Roles'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: (query) {
-                setState(() {
-                  searchQuery = query.toLowerCase();
-                  filteredUsers = users.where((user) {
-                    final name = user['name_user']?.toLowerCase() ?? '';
-                    final lastname = user['lastname_user']?.toLowerCase() ?? '';
-                    final email = user['email']?.toLowerCase() ?? '';
-                    return name.contains(searchQuery) ||
-                        lastname.contains(searchQuery) ||
-                        email.contains(searchQuery);
-                  }).toList();
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
+    return Column(
+      children: [
+        // Barre de recherche en dessous de l'AppBar
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            onChanged: (query) {
+              setState(() {
+                searchQuery = query.toLowerCase();
+                filteredUsers = users.where((user) {
+                  final name = user['name_user']?.toLowerCase() ?? '';
+                  final lastname = user['lastname_user']?.toLowerCase() ?? '';
+                  final email = user['email']?.toLowerCase() ?? '';
+                  return name.contains(searchQuery) ||
+                      lastname.contains(searchQuery) ||
+                      email.contains(searchQuery);
+                }).toList();
+              });
+            },
+            decoration: InputDecoration(
+              hintText: 'Search',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide.none,
               ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
             ),
           ),
         ),
-      ),
-      body: ListView.builder(
-        itemCount: filteredUsers.length,
-        itemBuilder: (context, index) {
-          final user = filteredUsers[index];
-          final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
+        // Liste des utilisateurs
+        Expanded(
+          child: ListView.builder(
+            itemCount: filteredUsers.length,
+            itemBuilder: (context, index) {
+              final user = filteredUsers[index];
+              final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
 
-          return ListTile(
-            title: Text('${user['name_user']} ${user['lastname_user']}'),
-            subtitle: Text('Role: $roleName'),
-          );
-        },
-      ),
+              return ListTile(
+                title: Text('${user['name_user']} ${user['lastname_user']}'),
+                subtitle: Text('Role: $roleName'),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

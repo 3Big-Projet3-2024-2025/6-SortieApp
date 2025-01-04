@@ -43,7 +43,7 @@ class localAdminHomePage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Supervisors_management_page()),
+                    MaterialPageRoute(builder: (context) => const student_management_page()),
                   );
                 },
                 child: const Text('Manage students'),
@@ -52,7 +52,7 @@ class localAdminHomePage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const student_management_page()),
+                    MaterialPageRoute(builder: (context) => const Supervisors_management_page()),
                   );
                 },
                 child: const Text('Manage supervisors'),
