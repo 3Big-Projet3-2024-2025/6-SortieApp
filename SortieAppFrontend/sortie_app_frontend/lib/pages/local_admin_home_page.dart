@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sortie_app_frontend/pages/student_management_page.dart';
+import 'package:sortie_app_frontend/pages/supervisor_management_page.dart';
 
 class localAdminHomePage extends StatelessWidget {
   final secureStorage = const FlutterSecureStorage();
@@ -10,7 +12,7 @@ class localAdminHomePage extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xFF87CEEB),
-          title: const Text('Home'),
+          title: const Text('Sortie\'App'),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -26,18 +28,34 @@ class localAdminHomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  Get.offNamed('/users');
-                },
-                child: const Text('Student Management'),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.0),
+                child: Text(
+                  'Welcome to Sortie\'App',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Get.offNamed('/autorisations');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Supervisors_management_page()),
+                  );
                 },
-                child: const Text('Autorisations management'),
+                child: const Text('Manage students'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const student_management_page()),
+                  );
+                },
+                child: const Text('Manage supervisors'),
               ),
             ],
           ),
