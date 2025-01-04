@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../utils/backendRequest.dart';
 import '../utils/router.dart';
 
 class AutorisationCrudPage extends StatelessWidget {
@@ -35,9 +36,6 @@ class AutorisationListScreen extends StatefulWidget {
 }
 
 class _AutorisationListScreenState extends State<AutorisationListScreen> {
-  String getBackendUrl() {
-    return kIsWeb ? 'http://localhost:8081' : 'http://10.0.2.2:8081';
-  }
 
   late String apiUrl;
   List autorisations = [];
@@ -52,8 +50,9 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
 
   Future<void> fetchAutorisations({int page = 0}) async {
     try {
+      var header = await getHeader();
       final response = await http.get(
-        Uri.parse(apiUrl),
+        Uri.parse(apiUrl),headers: header,
       );
 
       if (response.statusCode == 200) {
@@ -102,17 +101,17 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
       };
 
       print("Request Body: ${json.encode(body)}");
-
+      final header = await getHeader();
       final uri = Uri.parse(apiUrl);
       final response = id != null
           ? await http.put(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: header,
         body: json.encode(body),
       )
           : await http.post(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: header,
         body: json.encode(body),
       );
 
@@ -131,7 +130,8 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
 
   Future<void> deleteAutorisation(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$apiUrl/$id'));
+      final header = await getHeader();
+      final response = await http.delete(Uri.parse('$apiUrl/$id'),headers: header);
       if (response.statusCode == 200 || response.statusCode == 201 ||
           response.statusCode == 204) {
         fetchAutorisations();

@@ -1,0 +1,6 @@
+flutter_native_splash:
+  color: "#a1b5ba" # Couleur de fond du splash screen
+  image: assets/images/SortieApp_logo_no_bg.png # Chemin vers le logo
+  android_12:
+    image: assets/images/SortieApp_logo_no_bg.png # Image pour Android 12+
+    color: "#a1b5ba" # Couleur de fond pour Android 12+

@@ -22,8 +22,8 @@ class _QRCodePageState extends State<QRCodePage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
     fetchUserProfile();
+    _loadUserData();
   }
 
   Future<void> _loadUserData() async {
@@ -37,7 +37,11 @@ class _QRCodePageState extends State<QRCodePage> {
       if (response.statusCode == 200) {
         setState(() {
           qrCodeBinary = response.bodyBytes; // Récupère l'image binaire
-          userName='${userData!['name_user']} ${userData!['lastname_user']}';
+          if (userData != null) {
+            userName = '${userData!['name_user']} ${userData!['lastname_user']}';
+          } else {
+            userName = 'User data is not loaded';
+          }
           isLoading = false;
         });
       } else {
@@ -55,19 +59,12 @@ class _QRCodePageState extends State<QRCodePage> {
   }
   Future<void> fetchUserProfile() async {
     final String url = '${getBackendUrl()}/users/profile';
-    final String? accessToken = await getAccesToken();
-    if (accessToken != null) {
-      print("Access Token: $accessToken");
-    } else {
-      print("No Access Token found.");
-    }
+    final header = await getHeader();
 
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-        },
+        headers: header,
       );
 
       if (response.statusCode == 200) {

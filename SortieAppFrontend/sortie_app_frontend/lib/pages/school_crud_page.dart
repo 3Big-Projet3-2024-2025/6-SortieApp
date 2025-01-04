@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get/get.dart';
 
+import '../utils/backendRequest.dart';
 import '../utils/router.dart';
 
 class SchoolsCrud extends StatelessWidget {
@@ -37,13 +38,6 @@ class SchoolListScreen extends StatefulWidget {
 }
 
 class _SchoolListScreenState extends State<SchoolListScreen> {
-  String getBackendUrl() {
-    if (kIsWeb) {
-      return 'http://localhost:8081'; // URL Backend for Web
-    } else {
-      return 'http://10.0.2.2:8081'; // URL Backend for Android Emulator
-    }
-  }
 
   late String apiUrl;
 
@@ -68,7 +62,8 @@ class _SchoolListScreenState extends State<SchoolListScreen> {
 
   Future<void> fetchSchools() async {
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      var header = await getHeader();
+      final response = await http.get(Uri.parse(apiUrl),headers: header);
       if (response.statusCode == 200) {
         setState(() {
           schools = json.decode(response.body);

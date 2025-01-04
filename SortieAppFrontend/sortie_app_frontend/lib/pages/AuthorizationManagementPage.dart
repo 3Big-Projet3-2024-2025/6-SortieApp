@@ -20,7 +20,7 @@ class AuthorizationManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Autorisations Management'),
+        title: const Text('Sortie\'App'),
         backgroundColor: Color(0xFF87CEEB),
         actions: [
           IconButton(
@@ -47,9 +47,6 @@ class AutorisationListScreen extends StatefulWidget {
 }
 
 class _AutorisationListScreenState extends State<AutorisationListScreen> {
-  String getBackendUrl() {
-    return kIsWeb ? 'http://localhost:8081' : 'http://10.0.2.2:8081';
-  }
 
   late String apiUrl;
   List autorisations = [];
@@ -64,8 +61,9 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
 
   Future<void> fetchAutorisations({int page = 0}) async {
     try {
+      var header= await getHeader();
       final response = await http.get(
-        Uri.parse('$apiUrl/Autorisations/user/${widget.studentId}'),
+        Uri.parse('$apiUrl/Autorisations/user/${widget.studentId}'),headers: header,
       );
 
       if (response.statusCode == 200) {
@@ -144,7 +142,8 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
 
   Future<void> deleteAutorisation(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$apiUrl/$id'));
+      final header = await getHeader();
+      final response = await http.delete(Uri.parse('$apiUrl/Autorisations/$id'),headers: header);
       if (response.statusCode == 200 || response.statusCode == 201 ||
           response.statusCode == 204) {
         fetchAutorisations();

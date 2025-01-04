@@ -407,7 +407,8 @@ public class UserController {
         }
 
         User user = activationToken.getUser();
-        user.setPassword_user(passwordEncoder.encode(password));
+        //System.out.println(password); //debug
+        user.setPassword_user(password);
         user.setActivated(true);
 
         serviceDB.updateUser(user, user.getId());

@@ -31,7 +31,7 @@ Future<void> redirectHome() async {
             Get.offNamed('/studentHome');
             break;
           default:
-            Get.snackbar('Redirect failed', 'Unknow role');
+            Get.snackbar('Redirect failed', 'Unknown role');
             Get.offNamed('/login');
             deleteTokens();
         }

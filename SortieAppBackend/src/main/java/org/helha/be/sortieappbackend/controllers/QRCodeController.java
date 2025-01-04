@@ -4,6 +4,7 @@ import io.jsonwebtoken.JwtException;
 import org.helha.be.sortieappbackend.ServiceImpl.QRCodeServiceImpl;
 import org.helha.be.sortieappbackend.models.Autorisation;
 import org.helha.be.sortieappbackend.models.User;
+import org.helha.be.sortieappbackend.models.UserAutorisation;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.helha.be.sortieappbackend.services.IAutorisationService;
 import org.helha.be.sortieappbackend.utils.JWTUtils;
@@ -40,41 +41,8 @@ public class QRCodeController {
         }
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         try {
-            // VÃ©rification de l'activation de l'utilisateur
             int userId = jwtUtils.getUserIdFromToken(token);
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-            if (!user.getActivated()) {
-                byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("User is not activated", 300, 300);
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
-                        .contentType(MediaType.IMAGE_PNG)
-                        .body(qrCode);
-            }
-
-            // Get all autorisations for the user
-            List<Autorisation> autorisations = autorisationService.getAutorisationsByUserID(userId);
-
-            if (autorisations.isEmpty()) {
-                byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("Exit not authorized", 300, 300);
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
-                        .contentType(MediaType.IMAGE_PNG)
-                        .body(qrCode);
-            }
-
-            for (Autorisation autorisation : autorisations) {
-                if (qrCodeServiceImpl.checkIfUserCanLeave(autorisation)) {
-                    byte[] qrCode = qrCodeServiceImpl.generateQRCodeFromAutorisation(autorisation, 300, 300);
-                    return ResponseEntity.ok()
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
-                            .contentType(MediaType.IMAGE_PNG)
-                            .body(qrCode);
-                }
-            }
-
-            byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage("Exit not authorized", 300, 300);
+            byte[] qrCode = qrCodeServiceImpl.generateQRCodeWithMessage(String.valueOf(userId), 300, 300);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"autorisation_qrcode.png\"")
                     .contentType(MediaType.IMAGE_PNG)
@@ -84,6 +52,29 @@ public class QRCodeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         } catch (Exception e) {
             return ResponseEntity.status(500).body(e);  // Internal server error
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable("id") Integer id) {
+        if (id == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        try {
+            User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+            List<Autorisation> autorisations = autorisationService.getAutorisationsByUserID(user.getId());
+            UserAutorisation userAutorisation = new UserAutorisation();
+            userAutorisation.setUser(user);
+            for (Autorisation autorisation : autorisations) {
+                if (qrCodeServiceImpl.checkIfUserCanLeave(autorisation)) {
+                    userAutorisation.setCanGo(true);
+                    return ResponseEntity.ok(userAutorisation);
+                }
+            }
+            userAutorisation.setCanGo(false);
+            return ResponseEntity.ok(userAutorisation);
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }

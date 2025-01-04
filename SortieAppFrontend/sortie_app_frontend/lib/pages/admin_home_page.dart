@@ -10,7 +10,7 @@ class adminHomePage extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xFF87CEEB),
-          title: const Text('Home'),
+          title: const Text('Sortie\'App'),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -26,6 +26,17 @@ class adminHomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.0),
+                child: Text(
+                  'Welcome to Sortie\'App',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
               ElevatedButton(
                 onPressed: () {
                   Get.offNamed('/users');
