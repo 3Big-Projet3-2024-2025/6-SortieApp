@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sortie_app_frontend/utils/tokenUtils.dart';
 
 String getBackendUrl() {
-  return kIsWeb ? 'http://localhost:8081' : 'http://192.168.0.190:8081';
+  return kIsWeb ? 'http://localhost:8081' : 'http://192.168.0.12:8081';
 }
 
 Future<Map<String, String>> getHeader() async {
