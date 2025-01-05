@@ -52,6 +52,7 @@ class _UserListScreenState extends State<UserListScreen> {
 
   List users = [];
   List roles = [];
+  List schools = [];
 
   // For search tab
   List filteredUsers = [];
@@ -64,6 +65,7 @@ class _UserListScreenState extends State<UserListScreen> {
     rolesApiUrl = '${getBackendUrl()}/roles';
     fetchUsers();
     fetchRoles();
+    fetchSchools();
   }
 
   Future<void> fetchUsers() async {
@@ -110,9 +112,23 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
+  Future<void> fetchSchools() async {
+    try {
+      final response = await http.get(Uri.parse('${getBackendUrl()}/schools'));
+      if (response.statusCode == 200) {
+        setState(() {
+          schools = json.decode(response.body);
+        });
+      } else {
+        throw Exception('Failed to load schools');
+      }
+    } catch (e) {
+      print('Error fetching schools: $e');
+    }
+  }
+
   // Add a new user to the backend
-  Future<void> addUser(String name_user, String lastname_user,
-      String email, String address_user, int id_role) async {
+  Future<void> addUser(String name_user, String lastname_user, String email, String address_user, int id_role, int id_school) async {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -123,6 +139,7 @@ class _UserListScreenState extends State<UserListScreen> {
           'email': email,
           'address_user': address_user,
           'role_user': {'id_role': id_role},
+          'school_user': {'id_school': id_school},
         }),
       );
       if (response.statusCode == 200) {
@@ -196,8 +213,15 @@ class _UserListScreenState extends State<UserListScreen> {
     }
   }
 
-  Future<void> updateUser(int id, String name_user, String lastname_user,
-      String email, String address_user, int id_role, bool activated) async {
+  Future<void> updateUser(
+      int id,
+      String name_user,
+      String lastname_user,
+      String email,
+      String address_user,
+      int id_role,
+      bool activated,
+      int id_school) async {
     try {
       final response = await http.put(
         Uri.parse('$apiUrl/$id'),
@@ -208,6 +232,7 @@ class _UserListScreenState extends State<UserListScreen> {
           'email': email,
           'address_user': address_user,
           'role_user': {'id_role': id_role},
+          'school_user': {'id_school': id_school},
           'activated': activated
         }),
       );
@@ -270,6 +295,7 @@ class _UserListScreenState extends State<UserListScreen> {
     final TextEditingController addressController = TextEditingController();
 
     int? selectedRoleId;
+    int? selectedSchoolId;
     String? errorMessage;
 
     showDialog(
@@ -318,6 +344,20 @@ class _UserListScreenState extends State<UserListScreen> {
                       selectedRoleId = value;
                     },
                   ),
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(hintText: 'Select School'),
+                    items: schools.isNotEmpty
+                        ? schools.map<DropdownMenuItem<int>>((school) {
+                      return DropdownMenuItem<int>(
+                        value: school['id_school'],
+                        child: Text(school['name_school']),
+                      );
+                    }).toList()
+                        : [],
+                    onChanged: (value) {
+                      selectedSchoolId = value;
+                    },
+                  ),
                 ],
               ),
               actions: [
@@ -349,6 +389,7 @@ class _UserListScreenState extends State<UserListScreen> {
                         emailController.text,
                         addressController.text,
                         selectedRoleId!,
+                        selectedSchoolId!,
                       );
                       Navigator.pop(context);
                     }
@@ -371,7 +412,8 @@ class _UserListScreenState extends State<UserListScreen> {
       String currentAddress,
       int currentRoleId,
       bool currentActivated,
-      ) async {
+      int? selectedSchoolId, // step1
+  ) async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
@@ -434,6 +476,21 @@ class _UserListScreenState extends State<UserListScreen> {
                       });
                     },
                   ),
+                  DropdownButtonFormField<int>(
+                  value: selectedSchoolId,
+                  decoration: const InputDecoration(hintText: 'Select School'),
+                  items: schools.map<DropdownMenuItem<int>>((school) {
+                  return DropdownMenuItem<int>(
+                  value: school['id_school'],
+                  child: Text(school['name_school']),
+                  );
+                  }).toList(),
+                  onChanged: (value) {
+                  setState(() {
+                  selectedSchoolId = value;
+                  });
+                  },
+                  ),//step2
                   TextField(
                     enabled: false,
                     decoration: InputDecoration(
@@ -472,6 +529,7 @@ class _UserListScreenState extends State<UserListScreen> {
                         addressController.text,
                         selectedRoleId!,
                         currentActivated,
+                        selectedSchoolId!,
                       );
                       Navigator.pop(context);
                     }
@@ -532,6 +590,7 @@ class _UserListScreenState extends State<UserListScreen> {
                 final address = user['address_user'] ?? 'No Address';
                 final email = user['email'] ?? 'No Email';
                 final isActive = user['activated'] == true;
+                final schoolName = user['school_user']?['name_school'] ?? 'No School';
 
                 final String? base64Image = user['picture_user'];
                 Uint8List? imageBytes = (base64Image != null && base64Image.trim().isNotEmpty)
@@ -587,7 +646,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('$roleName\n$email\n$address'),
+                      Text('$roleName\n$schoolName\n$email\n$address'),
                       Text(
                         'Active: ${isActive ? 'Yes' : 'No'}',
                         style: TextStyle(
@@ -610,6 +669,7 @@ class _UserListScreenState extends State<UserListScreen> {
                           user['address_user'] ?? '',
                           user['role_user']?['id_role'] ?? 0,
                           user['activated'] ?? false,
+                          user['school_user']['id_school'] ?? 0,
                         ),
                       ),
                       IconButton(
