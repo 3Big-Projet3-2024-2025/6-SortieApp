@@ -30,6 +30,23 @@ public class SpringSecurityConfig {
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> {
+                    //AutentificationController
+                    authorizeRequests.requestMatchers("/auth/login").permitAll();
+                    authorizeRequests.requestMatchers("/auth/refresh-token").authenticated();
+                    //AutorisationController
+                    authorizeRequests.requestMatchers("/Autorisations/**").hasAnyRole("ADMIN", "RESPONSIBLE");
+                    //QRCodeController
+                    authorizeRequests.requestMatchers("/qrcodes/generateFromUser").hasRole("STUDENT");
+                    authorizeRequests.requestMatchers("/qrcodes/{id}").hasAnyRole("SUPERVISOR", "LOCAL_ADMIN", "RESPONSIBLE");
+                    //RoleController
+                    authorizeRequests.requestMatchers("/roles/**").hasAnyRole("ADMIN", "RESPONSIBLE", "LOCAL_ADMIN");
+                    //SchoolController
+                    authorizeRequests.requestMatchers("/schools/**").hasAnyRole("ADMIN", "RESPONSIBLE", "LOCAL_ADMIN");
+                    //UserController
+                    authorizeRequests.requestMatchers("/users/profile").permitAll();
+                    authorizeRequests.requestMatchers("/users/**").hasAnyRole("ADMIN", "RESPONSIBLE", "LOCAL_ADMIN");
+
+                    //SWAGGER
                     authorizeRequests.requestMatchers("/swagger-ui/**","/v3/api-docs").permitAll();
                     authorizeRequests.anyRequest().authenticated();
                 }).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();

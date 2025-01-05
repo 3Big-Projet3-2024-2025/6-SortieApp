@@ -218,12 +218,72 @@ public class UserServiceDB implements IUserService {
                     user.setPicture_user(pictureUrl);
                 }
 
-                repository.save(user);
+                addUser(user);
             }
         } catch (Exception e) {
             throw new RuntimeException("Error importing users from CSV", e);
         }
     }
+
+    /**
+     * Import users from CSV File and assign them the school of the admin importing the file.
+     */
+    public void importUsersFromCSVForAdmin(MultipartFile file, int adminId) {
+        try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
+            String[] header = reader.readNext(); // Lire l'en-tête
+
+            if (header == null || header.length != 5 ||
+                    !"lastname_user".equals(header[0]) ||
+                    !"name_user".equals(header[1]) ||
+                    !"address_user".equals(header[2]) ||
+                    !"email".equals(header[3]) ||
+                    !"picture_user".equals(header[4])) {
+
+                throw new IllegalArgumentException("CSV file has incorrect column headers or order.");
+            }
+
+            // Récupérer l'école de l'admin connecté
+            User admin = repository.findById(adminId)
+                    .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
+
+            School adminSchool = admin.getSchool_user();
+            if (adminSchool == null) {
+                throw new IllegalArgumentException("Admin does not have a school assigned.");
+            }
+
+            String[] nextLine;
+
+            while ((nextLine = reader.readNext()) != null) {
+                String lastname = nextLine[0];
+                String firstname = nextLine[1];
+                String address = nextLine[2];
+                String email = nextLine[3];
+                String pictureUrl = nextLine[4];
+
+                // Assigner le rôle par défaut "STUDENT"
+                Role defaultRole = roleServiceDB.getRoleByName("STUDENT")
+                        .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
+
+                User user = new User();
+                user.setLastname_user(lastname);
+                user.setName_user(firstname);
+                user.setEmail(email);
+                user.setAddress_user(address);
+                user.setSchool_user(adminSchool);  // L'école de l'admin est assignée ici
+                user.setRole_user(defaultRole);
+                user.setActivated(false);
+
+                if (pictureUrl != null && !pictureUrl.isEmpty()) {
+                    user.setPicture_user(pictureUrl);
+                }
+
+                addUser(user);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error importing users from CSV for admin", e);
+        }
+    }
+
 
     /**
      * Updates the profile picture of a user by their ID.
