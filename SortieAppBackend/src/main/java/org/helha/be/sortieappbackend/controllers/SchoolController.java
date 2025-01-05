@@ -6,7 +6,6 @@ import org.helha.be.sortieappbackend.services.SchoolServiceDB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +25,7 @@ public class SchoolController {
      *
      * @return a list of schools.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
+
     @GetMapping
     public List<School> getSchools() {
         return schoolService.getSchools();
@@ -38,7 +37,7 @@ public class SchoolController {
      * @param id_school the ID of the school
      * @return a response containing the list of users or a 404 status if the school is not found
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
+
     @GetMapping("/getUsersBySchool/{id_school}")
     public ResponseEntity<List<User>> getUsersBySchool(@PathVariable int id_school) {
         Optional<School> school = schoolService.getSchoolById(id_school);
@@ -51,7 +50,7 @@ public class SchoolController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
+
     @GetMapping("/getStudentsBySchool/{id_school}")
     public ResponseEntity<List<User>> getStudentsBySchool(@PathVariable int id_school) {
         Optional<School> school = schoolService.getSchoolById(id_school);
@@ -66,7 +65,7 @@ public class SchoolController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
+
     @GetMapping("/getSupervisorBySchool/{id_school}")
     public ResponseEntity<List<User>> getSupervisorBySchool(@PathVariable int id_school) {
         Optional<School> school = schoolService.getSchoolById(id_school);
@@ -87,7 +86,7 @@ public class SchoolController {
      * @param school the school to add.
      * @return the added school.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
+
     @PostMapping
     public School addSchool(@RequestBody School school) {
         return schoolService.addSchool(school);
@@ -100,7 +99,7 @@ public class SchoolController {
      * @param id_school the ID of the school to update.
      * @return the updated school.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
+
     @PutMapping(path = "/{id_school}")
     public School updateSchool(@RequestBody School school, @PathVariable int id_school) {
         return schoolService.updateSchool(school, id_school);
@@ -112,7 +111,7 @@ public class SchoolController {
      *
      * @param id_school the ID of the school to delete.
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
+
     @DeleteMapping(path = "/{id_school}")
     public void deleteSchool(@PathVariable int id_school) {
         schoolService.deleteSchool(id_school);
