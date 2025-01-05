@@ -83,10 +83,11 @@ public class UserServiceDB implements IUserService {
      * Add a new user to the database and generate a QR code if the user is a student and activated.
      */
     public User addUser(User user) {
-        //TODO : Ici y'a un stut :  faudra changer car ça va probablement causer un soucis...
-        Role roleStudent = roleServiceDB.getRoleByName("STUDENT")
-                .orElseThrow(() -> new IllegalArgumentException("Role STUDENT not found"));
-        user.setRole_user(roleStudent);
+        if (user.getRole_user() != null && user.getRole_user().getId_role() != 0) {
+            Role role = roleServiceDB.getRoleById(user.getRole_user().getId_role())
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+            user.setRole_user(role);
+        }
 
         User savedUser = repository.save(user);
 

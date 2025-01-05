@@ -34,7 +34,6 @@ public class QRCodeController {
     @Autowired
     private UserRepository userRepository;
 
-
     @GetMapping("/generateFromUser")
     public ResponseEntity<?> generateQRCode(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || authHeader.isEmpty()) {
@@ -55,7 +54,6 @@ public class QRCodeController {
             return ResponseEntity.status(500).body(e);  // Internal server error
         }
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable("id") Integer id) {
