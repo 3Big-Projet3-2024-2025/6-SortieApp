@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
-import 'dart:typed_data'; // Import nécessaire pour Uint8List
+import 'dart:typed_data'; // Necessary for Uint8List
 
 import '../utils/backendRequest.dart';
 import '../utils/router.dart';
@@ -17,7 +17,8 @@ class student_management_page extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context); // Retour à la page précédente
+            // Go back to the previous page
+            Navigator.pop(context);
           },
         ),
         title: const Text(
@@ -27,7 +28,7 @@ class student_management_page extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: const Color(0xFF0052CC),
+        backgroundColor: const Color(0xFF0052CC), // Navy blue
       ),
       body: const StudentManagementScreen(),
     );
@@ -43,27 +44,70 @@ class StudentManagementScreen extends StatefulWidget {
 }
 
 class _StudentManagementScreenState extends State<StudentManagementScreen> {
+  // Will store active students
   List users = [];
+  // Will store the filtered list based on the search query
   List filteredUsers = [];
+  // Will store all roles fetched from the DB
   List roles = [];
-  String searchQuery = "";
-
-  /// On stocke ici l'id de l'école de l'utilisateur connecté
+  // Will store the 'id_role' for "Student"
+  int? studentRoleId;
+  // School ID of the connected user
   int? _schoolId;
+
+  // Used to store the user input from the search bar
+  String searchQuery = "";
 
   @override
   void initState() {
     super.initState();
     fetchUsers();
-    fetchRoles();
+    fetchRoles(); // Fetch roles to identify "Student"
   }
 
+  /// Fetch all roles from the backend, look for the "Student" role, and store its ID.
+  Future<void> fetchRoles() async {
+    try {
+      final header = await getHeader();
+      final uri = getBackendUrl();
+
+      final response = await http.get(
+        Uri.parse('$uri/roles'),
+        headers: header,
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          roles = data; // Example: [{id_role:1, name_role:"Admin"}, ...]
+        });
+
+        // If you already know the ID of the "Student" role, you can directly do:
+        // studentRoleId = 2; // for instance
+        // Otherwise, find it by name:
+        final student = roles.firstWhere(
+              (r) => r['name_role'] == 'Student',
+          orElse: () => null,
+        );
+        if (student != null) {
+          studentRoleId = student['id_role'];
+        }
+      } else {
+        print('Error fetching roles. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching roles: $e');
+    }
+  }
+
+  /// Fetch students belonging to the logged-in user's school
+  /// and keep only those where 'activated' is true.
   Future<void> fetchUsers() async {
     try {
-      var header = await getHeader();
-      var uri = getBackendUrl();
+      final header = await getHeader();
+      final uri = getBackendUrl();
 
-      // Récupération du profil
+      // Retrieve the user's profile to get the school ID
       final profileResponse = await http.get(
         Uri.parse('$uri/users/profile'),
         headers: header,
@@ -73,23 +117,24 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
         final userData = json.decode(profileResponse.body);
         final schoolId = userData['school_user']['id_school'];
 
-        // Récupération des étudiants
+        // Fetch the students for that particular school
         final studentsResponse = await http.get(
           Uri.parse('$uri/schools/getStudentsBySchool/$schoolId'),
           headers: header,
         );
 
         if (studentsResponse.statusCode == 200) {
-          // On décode la réponse
           final allUsers = json.decode(studentsResponse.body);
 
-          // On ne garde que ceux qui sont "activated" == true
-          final activeUsers = allUsers.where((user) => user['activated'] == true).toList();
+          // Keep only users with 'activated == true'
+          final activeUsers = allUsers
+              .where((user) => user['activated'] == true)
+              .toList();
 
           setState(() {
             users = activeUsers;
             filteredUsers = activeUsers;
-            _schoolId = schoolId; // Pour l’ajout ultérieur
+            _schoolId = schoolId;
           });
         } else {
           throw Exception('Failed to load students');
@@ -102,87 +147,79 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
     }
   }
 
-  Future<void> fetchRoles() async {
-    try {
-      final response = await http.get(Uri.parse('${getBackendUrl()}/roles'));
-      if (response.statusCode == 200) {
-        setState(() {
-          roles = json.decode(response.body);
-        });
-      } else {
-        throw Exception('Failed to load roles');
-      }
-    } catch (e) {
-      print('Error fetching roles: $e');
-    }
-  }
-
-  /// Met à jour un utilisateur existant
-  Future<void> updateUser(
-      int id,
-      String name_user,
-      String lastname_user,
-      String email,
-      String address_user,
-      int id_role,
-      bool activated,
-      ) async {
-    try {
-      final response = await http.put(
-        Uri.parse('${getBackendUrl()}/users/$id'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'name_user': name_user,
-          'lastname_user': lastname_user,
-          'email': email,
-          'address_user': address_user,
-          'role_user': {'id_role': id_role},
-          'activated': activated,
-        }),
-      );
-      if (response.statusCode == 200) {
-        fetchUsers();
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-  /// Crée un nouvel utilisateur en lui attribuant l'id_school
+  /// Create a new user with the default "Student" role (studentRoleId).
   Future<void> createUser(
-      String name_user,
-      String lastname_user,
+      String nameUser,
+      String lastnameUser,
       String email,
-      String address_user,
-      int id_role,
-      bool activated,
+      String addressUser,
+      int? roleId,
       ) async {
     try {
+      final header = await getHeader();
       final response = await http.post(
         Uri.parse('${getBackendUrl()}/users'),
-        headers: {'Content-Type': 'application/json'},
+        headers: header,
         body: json.encode({
-          'name_user': name_user,
-          'lastname_user': lastname_user,
+          'name_user': nameUser,
+          'lastname_user': lastnameUser,
           'email': email,
-          'address_user': address_user,
-          'role_user': {'id_role': id_role},
-          'activated': activated,
-          // On associe la même école que la personne connectée
+          'address_user': addressUser,
+          'activated': false, // new user not activated by default
           'school_user': {
-            'id_school': _schoolId, // <-- c'est ici l'important
+            'id_school': _schoolId,
+          },
+          'role_user': {
+            'id_role': roleId, // "Student" role by default
           },
         }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         fetchUsers();
+      } else {
+        print('Error creating user (HTTP ${response.statusCode}): ${response.body}');
       }
     } catch (e) {
       print('Error creating user: $e');
     }
   }
 
-  /// Montre le dialogue pour choisir un fichier CSV
+  /// Update an existing user. The role remains the same (Student), but
+  /// we could also keep a disabled dropdown if we wanted to show it in the UI.
+  Future<void> updateUser(
+      int id,
+      String nameUser,
+      String lastnameUser,
+      String email,
+      String addressUser,
+      bool activated,
+      int? roleId,
+      ) async {
+    try {
+      final header = await getHeader();
+      final response = await http.put(
+        Uri.parse('${getBackendUrl()}/users/$id'),
+        headers: header,
+        body: json.encode({
+          'name_user': nameUser,
+          'lastname_user': lastnameUser,
+          'email': email,
+          'address_user': addressUser,
+          'activated': activated,
+          'role_user': {
+            'id_role': roleId,
+          },
+        }),
+      );
+      if (response.statusCode == 200) {
+        fetchUsers();
+      }
+    } catch (e) {
+      print('Error updating user: $e');
+    }
+  }
+
+  /// Import a CSV file with the correct headers for authentication.
   void showImportCSVDialog(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -194,10 +231,14 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
       String fileName = result.files.single.name;
 
       try {
+        final header = await getHeader();
         var request = http.MultipartRequest(
           'POST',
           Uri.parse('${getBackendUrl()}/users/import'),
         );
+
+        // Add headers (e.g., Authorization)
+        request.headers.addAll(header);
 
         if (fileBytes != null) {
           request.files.add(
@@ -218,7 +259,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          fetchUsers(); // Recharge les utilisateurs
+          fetchUsers();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -236,6 +277,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
         );
       }
     } else {
+      // No file selected
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No file selected.'),
@@ -245,7 +287,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
     }
   }
 
-  /// Supprime un utilisateur après confirmation
+  /// Delete a user after confirmation
   Future<void> deleteUser(int id) async {
     final confirm = await showDialog(
       context: context,
@@ -267,28 +309,33 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
 
     if (confirm == true) {
       try {
+        final header = await getHeader();
         final response = await http.delete(
           Uri.parse('${getBackendUrl()}/users/$id'),
+          headers: header,
         );
         if (response.statusCode == 200) {
           fetchUsers();
         }
       } catch (e) {
-        print('Error: $e');
+        print('Error deleting user: $e');
       }
     }
   }
 
-  /// Ouvre le dialogue pour modifier un utilisateur
+  /// Show a dialog to edit an existing user,
+  /// with a disabled dropdown for the "Student" role.
   void showEditUserDialog(
       int id,
       String currentName,
       String currentLastname,
       String currentEmail,
       String currentAddress,
-      int currentRoleId,
       bool currentActivated,
-      ) async {
+      Map? existingRole,
+      ) {
+    int? selectedRoleId = existingRole?['id_role'] ?? studentRoleId;
+
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
@@ -299,7 +346,6 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
     emailController.text = currentEmail;
     addressController.text = currentAddress;
 
-    int? selectedRoleId = currentRoleId;
     String? errorMessage;
 
     showDialog(
@@ -308,7 +354,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Edit User'),
+              title: const Text('Modifier l\'utilisateur'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -323,39 +369,34 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                       ),
                     TextField(
                       controller: nameController,
-                      decoration:
-                      const InputDecoration(hintText: 'Enter name'),
+                      decoration: const InputDecoration(hintText: 'Nom'),
                     ),
                     TextField(
                       controller: lastnameController,
-                      decoration:
-                      const InputDecoration(hintText: 'Enter lastname'),
+                      decoration: const InputDecoration(hintText: 'Prénom'),
                     ),
                     TextField(
                       controller: emailController,
-                      decoration:
-                      const InputDecoration(hintText: 'Enter email'),
+                      decoration: const InputDecoration(hintText: 'Email'),
                     ),
                     TextField(
                       controller: addressController,
-                      decoration:
-                      const InputDecoration(hintText: 'Enter address'),
+                      decoration: const InputDecoration(hintText: 'Adresse'),
                     ),
+                    const SizedBox(height: 12),
+                    // Disabled dropdown for the student's role
                     DropdownButtonFormField<int>(
                       value: selectedRoleId,
-                      decoration: const InputDecoration(hintText: 'Select Role'),
+                      decoration: const InputDecoration(labelText: 'Rôle'),
                       items: roles.map<DropdownMenuItem<int>>((role) {
                         return DropdownMenuItem<int>(
                           value: role['id_role'],
                           child: Text(role['name_role']),
                         );
                       }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedRoleId = value;
-                        });
-                      },
+                      onChanged: null, // Grayed out
                     ),
+                    const SizedBox(height: 12),
                     TextField(
                       enabled: false,
                       decoration: InputDecoration(
@@ -378,8 +419,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                     if (nameController.text.isEmpty ||
                         lastnameController.text.isEmpty ||
                         emailController.text.isEmpty ||
-                        addressController.text.isEmpty ||
-                        selectedRoleId == null) {
+                        addressController.text.isEmpty) {
                       setState(() {
                         errorMessage = 'All fields must be filled out.';
                       });
@@ -393,8 +433,8 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                         lastnameController.text,
                         emailController.text,
                         addressController.text,
-                        selectedRoleId!,
                         currentActivated,
+                        selectedRoleId,
                       );
                       Navigator.pop(context);
                     }
@@ -409,15 +449,17 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
     );
   }
 
-  /// Ouvre le dialogue pour ajouter un utilisateur
+  /// Show a dialog to add a new user, automatically assigning the "Student" role
+  /// and disabling the dropdown so the user can't change it.
   void showAddUserDialog() {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController addressController = TextEditingController();
 
-    int? selectedRoleId;
     String? errorMessage;
+    // By default, the user is assigned the "Student" role
+    int? selectedRoleId = studentRoleId;
 
     showDialog(
       context: context,
@@ -453,21 +495,18 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                     controller: addressController,
                     decoration: const InputDecoration(hintText: 'Adresse'),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
+                  // Disabled dropdown listing all roles
                   DropdownButtonFormField<int>(
                     value: selectedRoleId,
-                    decoration: const InputDecoration(hintText: 'Rôle'),
+                    decoration: const InputDecoration(labelText: 'Rôle'),
                     items: roles.map<DropdownMenuItem<int>>((role) {
                       return DropdownMenuItem<int>(
                         value: role['id_role'],
                         child: Text(role['name_role']),
                       );
                     }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedRoleId = value;
-                      });
-                    },
+                    onChanged: null, // Disabled
                   ),
                 ],
               ),
@@ -482,8 +521,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                   if (nameController.text.isEmpty ||
                       lastnameController.text.isEmpty ||
                       emailController.text.isEmpty ||
-                      addressController.text.isEmpty ||
-                      selectedRoleId == null) {
+                      addressController.text.isEmpty) {
                     setState(() {
                       errorMessage = 'Veuillez remplir tous les champs.';
                     });
@@ -491,15 +529,12 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                     setState(() {
                       errorMessage = null;
                     });
-                    // On crée le nouvel utilisateur, en lui attribuant
-                    // l'id_school via _schoolId
                     createUser(
                       nameController.text,
                       lastnameController.text,
                       emailController.text,
                       addressController.text,
-                      selectedRoleId!,
-                      false, // <--- ICI : l'utilisateur sera "activated = false"
+                      selectedRoleId, // The "Student" role
                     );
                     Navigator.pop(context);
                   }
@@ -515,12 +550,11 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Ici, on fait un Scaffold interne pour avoir un corps et des FAB
     return Scaffold(
-
+      // We already have an AppBar in the parent widget
       body: Column(
         children: [
-          // Champ de recherche
+          // Search bar to filter the user list
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -550,18 +584,70 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
               ),
             ),
           ),
-          // Liste des utilisateurs
+          // Expanded list of active students
           Expanded(
             child: ListView.builder(
               itemCount: filteredUsers.length,
               itemBuilder: (context, index) {
                 final user = filteredUsers[index];
+                // Display the role name or "Unknown Role"
+                final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
+
+                // Extract the user's base64-encoded image
+                final String? base64Image = user['picture_user'];
+                // Convert base64 to Uint8List if present
+                Uint8List? imageBytes = (base64Image != null && base64Image.trim().isNotEmpty)
+                    ? base64Decode(base64Image)
+                    : null;
+
                 return ListTile(
-                  title: Text('${user['name_user']} '
-                      '${user['lastname_user']}'),
-                  subtitle: Text(
-                    'Role: ${user['role_user']?['name_role'] ?? 'Unknown Role'}',
+                  // Tapping the image leads to a dialog showing a bigger picture
+                  leading: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                imageBytes != null
+                                    ? Image.memory(
+                                  imageBytes,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.asset(
+                                  'assets/images/default_profile.jpg',
+                                  fit: BoxFit.cover,
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: imageBytes != null
+                        ? Image.memory(
+                      imageBytes,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    )
+                        : Image.asset(
+                      'assets/images/default_profile.jpg',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
                   ),
+                  title: Text('${user['name_user']} ${user['lastname_user']}'),
+                  subtitle: Text('Role: $roleName'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -573,8 +659,8 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                           user['lastname_user'] ?? '',
                           user['email'] ?? '',
                           user['address_user'] ?? '',
-                          user['role_user']?['id_role'] ?? 0,
                           user['activated'] ?? false,
+                          user['role_user'], // Keep the existing role
                         ),
                       ),
                       IconButton(
@@ -589,11 +675,11 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
           ),
         ],
       ),
-      // Deux boutons en bas à droite
+      // Two FloatingActionButtons at the bottom-right
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Bouton pour importer un CSV
+          // FAB for importing CSV
           FloatingActionButton(
             heroTag: 'importCsv',
             backgroundColor: Colors.orange,
@@ -601,10 +687,10 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
             child: const Icon(Icons.upload_file, color: Colors.white),
           ),
           const SizedBox(width: 16),
-          // Bouton pour ajouter un utilisateur
+          // FAB for adding a new user
           FloatingActionButton(
             heroTag: 'addUser',
-            backgroundColor: Color(0xFF0052CC),
+            backgroundColor: const Color(0xFF0052CC),
             onPressed: showAddUserDialog,
             child: const Icon(Icons.person_add, color: Colors.white),
           ),

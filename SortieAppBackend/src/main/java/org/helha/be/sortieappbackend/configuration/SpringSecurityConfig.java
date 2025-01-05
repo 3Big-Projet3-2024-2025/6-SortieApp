@@ -43,7 +43,7 @@ public class SpringSecurityConfig {
                     //SchoolController
                     authorizeRequests.requestMatchers("/schools/**").hasAnyRole("ADMIN", "RESPONSIBLE", "LOCAL_ADMIN");
                     //UserController
-                    authorizeRequests.requestMatchers("/users/profile").permitAll();
+                    authorizeRequests.requestMatchers("/users/profile","/users/activate-form**", "/users/activate", "/users/set-password").permitAll();
                     authorizeRequests.requestMatchers("/users/**").hasAnyRole("ADMIN", "RESPONSIBLE", "LOCAL_ADMIN");
 
                     //SWAGGER
@@ -51,7 +51,6 @@ public class SpringSecurityConfig {
                     authorizeRequests.anyRequest().authenticated();
                 }).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder(){

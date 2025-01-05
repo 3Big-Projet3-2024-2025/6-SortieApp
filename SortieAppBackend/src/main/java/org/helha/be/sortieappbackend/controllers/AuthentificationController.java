@@ -33,7 +33,6 @@ public class AuthentificationController {
     @Autowired
     UserRepository userRepository;
 
-    @PermitAll
     @PostMapping("login")
     public ResponseEntity<?> authenticate(@RequestParam String email, @RequestParam String password){
         try{
@@ -51,7 +50,6 @@ public class AuthentificationController {
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PostMapping("refresh-token")
     public ResponseEntity<?> refreshAccessToken(@RequestParam String refreshToken) {
         try {

@@ -21,7 +21,7 @@ class UserApp extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
             'Users Management',
-             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF0052CC), // Bleu marine
         actions: [
           IconButton(
@@ -99,7 +99,8 @@ class _UserListScreenState extends State<UserListScreen> {
 
   Future<void> fetchRoles() async {
     try {
-      final response = await http.get(Uri.parse(rolesApiUrl));
+      final header = await getHeader();
+      final response = await http.get(Uri.parse(rolesApiUrl), headers: header);
       if (response.statusCode == 200) {
         setState(() {
           roles = json.decode(response.body);
@@ -114,7 +115,8 @@ class _UserListScreenState extends State<UserListScreen> {
 
   Future<void> fetchSchools() async {
     try {
-      final response = await http.get(Uri.parse('${getBackendUrl()}/schools'));
+      final header = await getHeader();
+      final response = await http.get(Uri.parse('${getBackendUrl()}/schools'), headers: header);
       if (response.statusCode == 200) {
         setState(() {
           schools = json.decode(response.body);
@@ -130,9 +132,10 @@ class _UserListScreenState extends State<UserListScreen> {
   // Add a new user to the backend
   Future<void> addUser(String name_user, String lastname_user, String email, String address_user, int id_role, int id_school) async {
     try {
+      final header = await getHeader();
       final response = await http.post(
         Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: header,
         body: json.encode({
           'name_user': name_user,
           'lastname_user': lastname_user,
@@ -162,10 +165,13 @@ class _UserListScreenState extends State<UserListScreen> {
       String fileName = result.files.single.name;
 
       try {
+        final header = await getHeader();
         var request = http.MultipartRequest(
           'POST',
           Uri.parse('${getBackendUrl()}/users/import'),
         );
+
+        request.headers.addAll(header);
 
         if (fileBytes != null) {
           request.files.add(
@@ -223,9 +229,10 @@ class _UserListScreenState extends State<UserListScreen> {
       bool activated,
       int id_school) async {
     try {
+      final header = await getHeader();
       final response = await http.put(
         Uri.parse('$apiUrl/$id'),
-        headers: {'Content-Type': 'application/json'},
+        headers: header,
         body: json.encode({
           'name_user': name_user,
           'lastname_user': lastname_user,
@@ -265,7 +272,8 @@ class _UserListScreenState extends State<UserListScreen> {
 
     if (confirm == true) {
       try {
-        final response = await http.delete(Uri.parse('$apiUrl/$id'));
+        final header = await getHeader();
+        final response = await http.delete(Uri.parse('$apiUrl/$id'), headers: header);
         if (response.statusCode == 200) {
           fetchUsers();
         }
@@ -413,7 +421,7 @@ class _UserListScreenState extends State<UserListScreen> {
       int currentRoleId,
       bool currentActivated,
       int? selectedSchoolId, // step1
-  ) async {
+      ) async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController lastnameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
@@ -477,19 +485,19 @@ class _UserListScreenState extends State<UserListScreen> {
                     },
                   ),
                   DropdownButtonFormField<int>(
-                  value: selectedSchoolId,
-                  decoration: const InputDecoration(hintText: 'Select School'),
-                  items: schools.map<DropdownMenuItem<int>>((school) {
-                  return DropdownMenuItem<int>(
-                  value: school['id_school'],
-                  child: Text(school['name_school']),
-                  );
-                  }).toList(),
-                  onChanged: (value) {
-                  setState(() {
-                  selectedSchoolId = value;
-                  });
-                  },
+                    value: selectedSchoolId,
+                    decoration: const InputDecoration(hintText: 'Select School'),
+                    items: schools.map<DropdownMenuItem<int>>((school) {
+                      return DropdownMenuItem<int>(
+                        value: school['id_school'],
+                        child: Text(school['name_school']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSchoolId = value;
+                      });
+                    },
                   ),//step2
                   TextField(
                     enabled: false,
@@ -712,5 +720,4 @@ class _UserListScreenState extends State<UserListScreen> {
       ),
     );
   }
-
 }
