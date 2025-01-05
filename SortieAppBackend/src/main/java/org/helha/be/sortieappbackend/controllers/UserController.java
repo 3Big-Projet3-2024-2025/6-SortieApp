@@ -177,7 +177,29 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to import users: " + e.getMessage());
         }
     }
-
+    @PostMapping("/importUsersForAdmin")
+    public ResponseEntity<?> importUsersForAdmin(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || authHeader.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Authorization header is missing");
+        }
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        try {
+            int userId = jwtUtils.getUserIdFromToken(token);
+            User user = serviceDB.getUserById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            if (user != null) {
+                serviceDB.importUsersFromCSVForAdmin(file, userId);
+                return ResponseEntity.ok("Users imported successfully and assigned to admin's school.");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e);
+        }
+    }
     /**
      * Updates the profile picture of the currently connected user.
      *
