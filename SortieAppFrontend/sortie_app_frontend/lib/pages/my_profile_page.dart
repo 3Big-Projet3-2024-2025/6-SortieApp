@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:sortie_app_frontend/pages/qrcode_page.dart';
@@ -97,10 +96,14 @@ class _MyProfileState extends State<MyProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sortie\'App'),
+        backgroundColor: const Color(0xFF0052CC),
+        title: const Text(
+          'My Profile',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
               await secureStorage.deleteAll();
               Get.offNamed('/login');
@@ -123,40 +126,18 @@ class _MyProfileState extends State<MyProfile> {
                   CircleAvatar(
                     radius: 80,
                     backgroundImage: _getProfileImage(),
+                    backgroundColor: Colors.grey[300],
                   ),
                   Positioned(
                     bottom: 5,
                     right: 5,
                     child: GestureDetector(
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text("Update Profile Picture"),
-                            content: const Text("Choose an image from your gallery."),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text("Cancel"),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.of(context).pop();
-                                  await _pickImageAndUpload();
-                                },
-                                child: const Text("Choose Image"),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
+                      onTap: _pickImageAndUpload,
                       child: Container(
                         height: 40,
                         width: 40,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
+                          color: const Color(0xFF0052CC),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -194,19 +175,28 @@ class _MyProfileState extends State<MyProfile> {
               label: 'School',
               value: userData!['school_user']?['name_school'] ?? 'N/A',
             ),
-            /*const SizedBox(height: 10),
-            ProfileField(
-              label: 'Role',
-              value: userData!['role_user']?['name_role'] ?? 'N/A',
-            ),*/
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const QRCodePage()),
-                );
-              },
-              child: const Text('Show Qr Code'),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0052CC), // Couleur du bouton (bleu marine)
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const QRCodePage()),
+                  );
+                },
+                child: const Text(
+                  'Show Qr Code',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white, // Texte en blanc
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -249,10 +239,12 @@ class ProfileField extends StatelessWidget {
         TextFormField(
           initialValue: value,
           readOnly: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
             filled: true,
-            fillColor: Colors.grey,
+            fillColor: Colors.grey[200],
           ),
         ),
       ],

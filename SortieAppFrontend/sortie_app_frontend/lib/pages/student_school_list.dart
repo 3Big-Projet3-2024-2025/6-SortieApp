@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:sortie_app_frontend/pages/student_details_with_autorisations.dart';
+import 'package:get/get.dart';
 
 import '../utils/router.dart';
 import '../utils/tokenUtils.dart';
@@ -14,13 +15,20 @@ class StudentListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sortie\'App'),
-        backgroundColor: Color(0xFF87CEEB),
+        title: const Text(
+          'Sortie\'App',
+          style: TextStyle(
+            color: Colors.white, // Titre en blanc
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFF0052CC), // Bleu marine
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
-              redirectHome();
+              await secureStorage.deleteAll();
+              Get.offNamed('/login');
             },
           ),
         ],

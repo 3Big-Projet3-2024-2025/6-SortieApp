@@ -11,11 +11,17 @@ class localAdminHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Color(0xFF87CEEB),
-          title: const Text('Sortie\'App'),
+          backgroundColor: Color(0xFF0052CC), // Bleu marine
+          title: const Text(
+            'Sortie\'App',
+            style: TextStyle(
+              color: Colors.white, // Titre en blanc
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Icons.logout, color: Colors.white),
               onPressed: () async {
                 await secureStorage.deleteAll();
                 Get.offNamed('/login');

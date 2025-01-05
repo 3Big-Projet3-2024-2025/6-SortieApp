@@ -57,6 +57,7 @@ class _QRCodePageState extends State<QRCodePage> {
       });
     }
   }
+
   Future<void> fetchUserProfile() async {
     final String url = '${getBackendUrl()}/users/profile';
     final header = await getHeader();
@@ -90,24 +91,90 @@ class _QRCodePageState extends State<QRCodePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QR Code'),
-        backgroundColor: Color(0xFF87CEEB),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'QR Code',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF0052CC), // Couleur bleu marine
       ),
       body: Center(
         child: isLoading
             ? const CircularProgressIndicator()
-            : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              userName,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            qrCodeBinary != null
-                ? Image.memory(qrCodeBinary!)
-                : const Text('No QR Code available'),
-          ],
+            : Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Nom de l'utilisateur
+              Text(
+                userName,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // QR Code
+              qrCodeBinary != null
+                  ? Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Image.memory(
+                  qrCodeBinary!,
+                  width: 200,
+                  height: 200,
+                ),
+              )
+                  : const Text(
+                'No QR Code available',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Bouton pour recharger le QR Code
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0052CC),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 30, vertical: 15),
+                ),
+                onPressed: _loadUserData,
+                child: const Text(
+                  'Reload QR Code',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

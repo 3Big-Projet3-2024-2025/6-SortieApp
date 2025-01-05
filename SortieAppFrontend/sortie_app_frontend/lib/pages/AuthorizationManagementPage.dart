@@ -7,10 +7,6 @@ import 'package:sortie_app_frontend/utils/backendRequest.dart';
 
 import '../utils/router.dart';
 
-
-
-
-
 class AuthorizationManagementPage extends StatelessWidget {
   final int studentId;
 
@@ -20,16 +16,20 @@ class AuthorizationManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sortie\'App'),
-        backgroundColor: Color(0xFF87CEEB),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              redirectHome();
-            },
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Icône blanche
+          onPressed: () {
+            Navigator.pop(context); // Retour à la page précédente
+          },
+        ),
+        title: const Text(
+          'Sortie\'App',
+          style: TextStyle(
+            color: Colors.white, // Titre en blanc
+            fontWeight: FontWeight.bold,
           ),
-        ],
+        ),
+        backgroundColor: const Color(0xFF0052CC),
       ),
       body: AutorisationListScreen(studentId: studentId),
     );
@@ -409,8 +409,8 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showAddEditDialog(),
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blue,
+        child: Icon(Icons.add, color: Colors.white),
+        backgroundColor: Color(0xFF0052CC),
       ),
     );
   }

@@ -12,11 +12,13 @@ class AutorisationCrudPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Autorisations Management'),
-        backgroundColor: Color(0xFF87CEEB),
+        title: const Text(
+            'Autorisations Management',
+             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF0052CC),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () async {
               redirectHome();
             },
@@ -404,12 +406,9 @@ class _AutorisationListScreenState extends State<AutorisationListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showAddEditDialog(),
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF0052CC), // Bleu marine
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
-
-
 }
-

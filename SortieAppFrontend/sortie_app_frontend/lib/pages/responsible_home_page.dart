@@ -9,8 +9,14 @@ class ResponsibleHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Color(0xFF87CEEB),
-          title: const Text('Home'),
+          title: const Text(
+            'Sortie\'App',
+            style: TextStyle(
+              color: Colors.white, // Titre en blanc
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: Color(0xFF0052CC), // Bleu marine
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),

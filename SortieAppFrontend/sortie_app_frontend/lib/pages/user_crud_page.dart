@@ -19,11 +19,13 @@ class UserApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sortie\'App'),
-        backgroundColor: Color(0xFF87CEEB),
+        title: const Text(
+            'Users Management',
+             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF0052CC), // Bleu marine
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () async {
               redirectHome();
             },
@@ -487,11 +489,11 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Management'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50.0),
-          child: Padding(
+      backgroundColor: const Color(0xFFF7F9FC), // Gris clair pour le fond
+      body: Column(
+        children: [
+          // Barre de recherche en dehors de l'AppBar
+          Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               onChanged: (query) {
@@ -509,139 +511,146 @@ class _UserListScreenState extends State<UserListScreen> {
               },
               decoration: InputDecoration(
                 hintText: 'Search',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                   borderSide: BorderSide.none,
                 ),
-                filled: true,
-                fillColor: Colors.white,
               ),
             ),
           ),
-        ),
-      ),
-      body: ListView.builder(
-        itemCount: filteredUsers.length,
-        itemBuilder: (context, index) {
-          final user = filteredUsers[index];
+          // Liste des utilisateurs
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredUsers.length,
+              itemBuilder: (context, index) {
+                final user = filteredUsers[index];
 
-          final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
-          final address = user['address_user'] ?? 'No Address';
-          final email = user['email'] ?? 'No Email';
-          final isActive = user['activated'] == true;
+                final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
+                final address = user['address_user'] ?? 'No Address';
+                final email = user['email'] ?? 'No Email';
+                final isActive = user['activated'] == true;
 
-          final String? base64Image = user['picture_user'];
-          Uint8List? imageBytes = (base64Image != null && base64Image.trim().isNotEmpty)
-              ? base64Decode(base64Image)
-              : null;
+                final String? base64Image = user['picture_user'];
+                Uint8List? imageBytes = (base64Image != null && base64Image.trim().isNotEmpty)
+                    ? base64Decode(base64Image)
+                    : null;
 
-          return ListTile(
-            leading: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Dialog(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          imageBytes != null
-                              ? Image.memory(
-                            imageBytes,
-                            fit: BoxFit.cover,
-                          )
-                              : Image.asset(
-                            'assets/images/default_profile.jpg',
-                            fit: BoxFit.cover,
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Close'),
-                          ),
-                        ],
+                return ListTile(
+                  leading: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                imageBytes != null
+                                    ? Image.memory(
+                                  imageBytes,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.asset(
+                                  'assets/images/default_profile.jpg',
+                                  fit: BoxFit.cover,
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: imageBytes != null
+                        ? Image.memory(
+                      imageBytes,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    )
+                        : Image.asset(
+                      'assets/images/default_profile.jpg',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  title: Text('${user['name_user']} ${user['lastname_user']}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('$roleName\n$email\n$address'),
+                      Text(
+                        'Active: ${isActive ? 'Yes' : 'No'}',
+                        style: TextStyle(
+                          color: isActive ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () => showEditUserDialog(
+                          user['id'],
+                          user['name_user'] ?? '',
+                          user['lastname_user'] ?? '',
+                          user['email'] ?? '',
+                          user['address_user'] ?? '',
+                          user['role_user']?['id_role'] ?? 0,
+                          user['activated'] ?? false,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => deleteUser(user['id']),
+                      ),
+                    ],
+                  ),
                 );
               },
-              child: imageBytes != null
-                  ? Image.memory(
-                imageBytes,
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
-              )
-                  : Image.asset(
-                'assets/images/default_profile.jpg',
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
-              ),
             ),
-            title: Text('${user['name_user']} ${user['lastname_user']}'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('$roleName\n$email\n$address'),
-                Text(
-                  'Active: ${isActive ? 'Yes' : 'No'}',
-                  style: TextStyle(
-                    color: isActive ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => showEditUserDialog(
-                    user['id'],
-                    user['name_user'] ?? '',
-                    user['lastname_user'] ?? '',
-                    user['email'] ?? '',
-                    user['address_user'] ?? '',
-                    user['role_user']?['id_role'] ?? 0,
-                    user['activated'] ?? false,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => deleteUser(user['id']),
-                ),
-              ],
-            ),
-          );
-        },
+          ),
+        ],
       ),
       floatingActionButton: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton(
+            backgroundColor: Colors.orange,
             onPressed: () => showImportCSVDialog(context),
-            child: const Icon(Icons.upload_file),
+            child: const Icon(Icons.upload_file, color: Colors.white),
           ),
           const SizedBox(width: 15),
           FloatingActionButton(
+            backgroundColor: Colors.green,
             onPressed: showAddUserDialog,
-            child: const Icon(Icons.add),
+            child: const Icon(Icons.add, color: Colors.white),
           ),
           const SizedBox(width: 15),
           FloatingActionButton(
+            backgroundColor: Colors.blue,
             onPressed: toggleUserView,
             child: Text(
-              showAllUsers ? 'Active Users' : 'See All Users',
+              showAllUsers ? 'Active' : 'All',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 10),
+              style: const TextStyle(color: Colors.white, fontSize: 10),
             ),
           ),
         ],
       ),
     );
   }
+
 }

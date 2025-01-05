@@ -9,8 +9,10 @@ class QRScannerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan QR Code'),
-        backgroundColor: Colors.blue,
+        title: const Text(
+            'Scan QR Code',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+        backgroundColor: const Color(0xFF0052CC), // Couleur bleu marine
       ),
       body: QRCodeDartScanView(
         scanInvertedQRCode: true, // Active la lecture des QR inversés
