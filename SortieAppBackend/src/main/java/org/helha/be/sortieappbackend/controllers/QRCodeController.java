@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class QRCodeController {
     @Autowired
     private UserRepository userRepository;
 
+    @PreAuthorize("hasAnyRole('STUDENT')")
     @GetMapping("/generateFromUser")
     public ResponseEntity<?> generateQRCode(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || authHeader.isEmpty()) {
@@ -55,6 +57,7 @@ public class QRCodeController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'LOCAL_ADMIN', 'RESPONSIBLE')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable("id") Integer id) {
         if (id == null) {

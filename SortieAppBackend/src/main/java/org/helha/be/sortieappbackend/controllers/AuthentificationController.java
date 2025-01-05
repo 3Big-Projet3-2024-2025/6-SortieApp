@@ -1,12 +1,14 @@
 package org.helha.be.sortieappbackend.controllers;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.annotation.security.PermitAll;
 import org.helha.be.sortieappbackend.models.JWT;
 import org.helha.be.sortieappbackend.repositories.jpa.UserRepository;
 import org.helha.be.sortieappbackend.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,6 +33,7 @@ public class AuthentificationController {
     @Autowired
     UserRepository userRepository;
 
+    @PermitAll
     @PostMapping("login")
     public ResponseEntity<?> authenticate(@RequestParam String email, @RequestParam String password){
         try{
@@ -47,6 +50,8 @@ public class AuthentificationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid username or password");
         }
     }
+
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("refresh-token")
     public ResponseEntity<?> refreshAccessToken(@RequestParam String refreshToken) {
         try {

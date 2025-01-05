@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class AutorisationController {
     @Autowired
     private IAutorisationService autorisationService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @GetMapping("/{id}")
     public ResponseEntity<Autorisation> getAutorisation(int id){
         long start = System.currentTimeMillis();
@@ -27,6 +29,7 @@ public class AutorisationController {
         return ResponseEntity.ok(autorisation);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @GetMapping("/paged")
     public ResponseEntity<Page<Autorisation>> getAutorisations(Pageable page){
         long start = System.currentTimeMillis();
@@ -36,6 +39,7 @@ public class AutorisationController {
         return ResponseEntity.ok(autorisations);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @GetMapping
     public ResponseEntity<List<Autorisation>> getAutorisations(){
         long start = System.currentTimeMillis();
@@ -45,6 +49,7 @@ public class AutorisationController {
         return ResponseEntity.ok(autorisations);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Autorisation>> getAutorisationByUserId(@PathVariable int userId){
         long start = System.currentTimeMillis();
@@ -54,6 +59,7 @@ public class AutorisationController {
         return ResponseEntity.ok(autorisations);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @GetMapping("/user/{userId}/paged")
     public ResponseEntity<Page<Autorisation>> getAutorisationByUserId(@PathVariable int userId, Pageable page){
         long start = System.currentTimeMillis();
@@ -63,6 +69,7 @@ public class AutorisationController {
         return ResponseEntity.ok(autorisations);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @PostMapping
     public ResponseEntity<?> addAutorisation(@RequestBody Autorisation autorisation){
         System.out.println("post autorisation");
@@ -75,6 +82,7 @@ public class AutorisationController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @PutMapping
     public ResponseEntity<?> updateAutorisation(@RequestBody Autorisation autorisation){
         try{
@@ -86,12 +94,14 @@ public class AutorisationController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAutorisation(@PathVariable long id) {
         autorisationService.deleteAutorisation(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE')")
     @GetMapping("/school/{school_id}")
     public ResponseEntity<List<Autorisation>> getAutorisationsBySchool(@PathVariable int school_id){
         long start = System.currentTimeMillis();

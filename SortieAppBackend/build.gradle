@@ -46,6 +46,7 @@ dependencies {
     implementation 'net.coobird:thumbnailator:0.4.14'
     implementation 'org.apache.commons:commons-csv:1.10.0'
     implementation 'com.opencsv:opencsv:5.7.1'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
 
     // Optional for integration tests

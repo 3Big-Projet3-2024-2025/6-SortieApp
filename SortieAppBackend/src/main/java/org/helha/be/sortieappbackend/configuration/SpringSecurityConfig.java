@@ -30,8 +30,7 @@ public class SpringSecurityConfig {
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> {
-                    //authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**").permitAll();
-                    authorizeRequests.requestMatchers("/Autorisations","/Autorisations/**","/swagger-ui/**","/v3/api-docs","/users","users/**","auth/**","/roles","/schools/**",  "/qrcodes/generateFromUser","/qrcodes/**").permitAll();
+                    authorizeRequests.requestMatchers("/swagger-ui/**","/v3/api-docs").permitAll();
                     authorizeRequests.anyRequest().authenticated();
                 }).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
     }

@@ -5,6 +5,7 @@
 package org.helha.be.sortieappbackend.controllers;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.annotation.security.PermitAll;
 import jakarta.transaction.Transactional;
 import org.helha.be.sortieappbackend.models.ActivationToken;
 import org.helha.be.sortieappbackend.models.User;
@@ -12,9 +13,9 @@ import org.helha.be.sortieappbackend.repositories.jpa.ActivationTokenRepository;
 import org.helha.be.sortieappbackend.services.UserServiceDB;
 import org.helha.be.sortieappbackend.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +49,7 @@ public class UserController {
     @Autowired
     private ActivationTokenRepository activationTokenRepository;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
     @GetMapping(path="/getAllUsers")
     public List<User> getAllUsers() {
         return serviceDB.getAllUsers();
@@ -59,11 +61,13 @@ public class UserController {
      * @return a list of all {@link User} objects.
      */
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
     @GetMapping
     public List<User> getUsers() {
         return serviceDB.getUsers();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSIBLE', 'LOCAL_ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable("id") Integer id) {
         if (id == null) {
@@ -82,6 +86,7 @@ public class UserController {
      * @param user the {@link User} object to add.
      * @return the added {@link User} object.
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL_ADMIN')")
     @PostMapping
     public User addUser(@RequestBody User user) {
         return serviceDB.addUser(user);
@@ -94,6 +99,7 @@ public class UserController {
      * @param id_user the ID of the {@link User} to update.
      * @return the updated {@link User} object.
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL_ADMIN')")
     @PutMapping(path = "/{id_user}")
     public User updateUser(@RequestBody User user, @PathVariable int id_user) {
         return serviceDB.updateUser(user, id_user);
@@ -104,6 +110,7 @@ public class UserController {
      *
      * @param id_user the ID of the {@link User} to delete.
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL_ADMIN')")
     @DeleteMapping(path = "/{id_user}")
     public void deleteUser(@PathVariable int id_user) {
         serviceDB.deleteUser(id_user);
@@ -114,6 +121,7 @@ public class UserController {
      *
      * @param id_user the ID of the {@link User} to delete.
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL_ADMIN')")
     @DeleteMapping(path="/delete/{id_user}")
     public void deletePhysically(@PathVariable int id_user) {
         serviceDB.deleteUserPhysically(id_user);
@@ -133,6 +141,7 @@ public class UserController {
      *         - {@code 401 Unauthorized}: if the token is invalid.
      *         - {@code 404 Not Found}: if the user does not exist.
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/profile")
     public ResponseEntity<?> getProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || authHeader.isEmpty()) {
@@ -160,6 +169,7 @@ public class UserController {
      * @return a {@link ResponseEntity} containing a success message if the import
      *         is successful, or an error message if the import fails.
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'LOCAL_ADMIN')")
     @PostMapping("/import")
     public ResponseEntity<String> importUsersFromCSV(@RequestParam("file") MultipartFile file) {
         try {
@@ -177,6 +187,7 @@ public class UserController {
      * @param payload      a JSON payload containing the new profile picture in Base64 format.
      * @return a {@link ResponseEntity} indicating the success or failure of the operation.
      */
+    @PreAuthorize("isAuthenticated()")
     @PutMapping(path = "/updateProfilePicture")
     public ResponseEntity<?> updateProfilePicture(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
@@ -218,6 +229,7 @@ public class UserController {
      * @param token the activation token received by email.
      * @return a ResponseEntity indicating the result of the activation process.
      */
+    @PermitAll
     @GetMapping("/activate")
     public ResponseEntity<String> activateAccount(@RequestParam String token) {
         try {
@@ -265,6 +277,7 @@ public class UserController {
      *         - HTTP 200 OK if the password is successfully updated and the account activated.
      *         - HTTP 400 Bad Request if the token is invalid, expired, or the passwords do not match.
      */
+    @PermitAll
     @Transactional
     @PostMapping("/set-password")
     public ResponseEntity<String> processPasswordForm(
@@ -472,7 +485,7 @@ public class UserController {
      *         - A styled HTML form if the token is valid.
      *         - An error message if the token is invalid or expired (HTTP 400 Bad Request).
      */
-
+    @PermitAll
     @GetMapping("/activate-form")
     public ResponseEntity<String> getActivationForm(@RequestParam String token) {
         Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(token);
