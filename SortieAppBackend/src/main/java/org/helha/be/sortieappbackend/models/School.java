@@ -3,10 +3,12 @@ package org.helha.be.sortieappbackend.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.List;
 
 @Data
+@ToString(exclude = "users_school")
 @Entity
 public class School {
 

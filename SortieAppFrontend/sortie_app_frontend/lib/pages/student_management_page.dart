@@ -82,9 +82,6 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
           roles = data; // Example: [{id_role:1, name_role:"Admin"}, ...]
         });
 
-        // If you already know the ID of the "Student" role, you can directly do:
-        // studentRoleId = 2; // for instance
-        // Otherwise, find it by name:
         final student = roles.firstWhere(
               (r) => r['name_role'] == 'Student',
           orElse: () => null,
@@ -220,6 +217,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
   }
 
   /// Import a CSV file with the correct headers for authentication.
+  /// Now calls the "importUsersForAdmin" endpoint instead of "import".
   void showImportCSVDialog(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -234,7 +232,8 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
         final header = await getHeader();
         var request = http.MultipartRequest(
           'POST',
-          Uri.parse('${getBackendUrl()}/users/import'),
+          // CHANGEMENT ICI -> /importUsersForAdmin
+          Uri.parse('${getBackendUrl()}/users/importUsersForAdmin'),
         );
 
         // Add headers (e.g., Authorization)
@@ -591,7 +590,8 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
               itemBuilder: (context, index) {
                 final user = filteredUsers[index];
                 // Display the role name or "Unknown Role"
-                final roleName = user['role_user']?['name_role'] ?? 'Unknown Role';
+                final roleName =
+                    user['role_user']?['name_role'] ?? 'Unknown Role';
 
                 // Extract the user's base64-encoded image
                 final String? base64Image = user['picture_user'];
